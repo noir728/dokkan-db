@@ -241,6 +241,7 @@
         .toggle-item { flex: 1; text-align: center; padding: 8px; font-size: 12px; color: #888; cursor: pointer; border-radius: 6px; }
         .toggle-item.selected { background: #555; color: white; font-weight: bold; }
     </style>
+    <script src="js/categories.js"></script>
     <script src="js/link_skills.js"></script>
     <script src="js/data.js"></script>
 </head>
@@ -278,25 +279,6 @@
 <script>
     const DB = (typeof CHARACTER_DATA !== 'undefined') ? CHARACTER_DATA : [];
     const LINKS = (typeof LINK_SKILLS !== 'undefined') ? LINK_SKILLS : {};
-
-    // --- Master Lists for Filters ---
-    const MASTER_CATEGORIES = [
-        "フュージョン", "ポタラ", "純粋サイヤ人", "混血サイヤ人", "神の次元", "劇場版HERO", "劇場版BOSS", 
-        "孫悟空の系譜", "ベジータの系譜", "邪悪龍編", "ナメック星編", "人造人間/セル編", "魔人ブウ編", "未来編", 
-        "宇宙サバイバル編", "第7宇宙代表", "第6宇宙", "最凶の一族", "時空を超えし者", "フルパワー", "コンビネーション", 
-        "かめはめ波", "師弟の絆", "超サイヤ人", "超サイヤ人2", "超サイヤ人3", "巨大化", "再起する力", "第11宇宙", 
-        "恐怖の征服", "ターゲット孫悟空", "スペシャルポーズ", "魔人の力", "地球人", "救世主", "正義の味方", "天才戦士", 
-        "ギニュー特戦隊", "バーダックチーム", "ピチピチギャル", "天下一武道会", "下級戦士", "少年編", "少年・少女", 
-        "託された意志", "最後の切り札", "急激な成長", "リベンジ", "異世界からの来訪者", "親友の絆", "高速戦闘", 
-        "命運をかけた闘い", "親子の絆", "地球育ちの戦士", "願いの力", "怒り爆発", "復讐", "超BOSS", "超HERO", 
-        "第21回天下一武道会", "GT HERO", "大猿パワー", "心身の侵食", "変身強化", "あの世の戦士", "超サイヤ人を超えた力"
-    ];
-    const MASTER_LINKS = [
-        "金色の戦士", "超サイヤ人", "かめはめ波", "伝説の力", "合体戦士", "歴戦の戦士", "超激戦", "短期決戦", 
-        "臨戦態勢", "神の次元", "GT", "サイヤ人の咆哮", "宇宙最強の一族", "サイヤ人の血", "BOSSキャラ", "変身タイプ", 
-        "悪夢", "恐怖と絶望", "驚異的なスピード", "限界突破", "摩訶不思議な大冒険", "ドラゴンボールの導き", "孫一族", 
-        "冷静な判断", "頭脳派", "パワーをくれ", "復活の「F」", "新生・天下一武道会", "インファイター", "魔人", "未来からの使者"
-    ];
 
     const state = {
         currentTab: 'zukan',
@@ -344,8 +326,8 @@
 
     function populateFilterOptions() {
         // Use MASTER Lists instead of DB extraction
-        const allCats = new Set(MASTER_CATEGORIES);
-        const allLinks = new Set(MASTER_LINKS);
+        const allCats = new Set(typeof MASTER_CATEGORIES !== 'undefined' ? MASTER_CATEGORIES : []);
+        const allLinks = new Set(Object.keys(LINKS));
         
         // Also scan DB just in case (for missing ones in master)
         DB.forEach(c => {
