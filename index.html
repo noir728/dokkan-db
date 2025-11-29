@@ -264,24 +264,37 @@
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             pointer-events: none; background-size: cover; background-position: center;
         }
-        .layer-char { z-index: 1; }  
-        .layer-frame { z-index: 2; border: 0px solid; box-sizing: border-box; }
         
+        /* レイヤー順序修正 */
+        /* 1. Frame (一番奥) */
+        .layer-frame { z-index: 1; border: 0px solid; box-sizing: border-box; }
+        /* 2. Char (中間) */
+        .layer-char { z-index: 2; }  
+        
+        /* 3. Decoration (一番手前) */
         .layer-rarity { 
             z-index: 3; position: absolute; bottom: 0; left: 0; 
-            width: 22px; height: 16px;
-            display: flex; align-items: center; justify-content: center;
+            width: 35%; height: auto; aspect-ratio: 22/16; /* 比率維持 */
+            display: flex; align-items: flex-end; justify-content: flex-start;
         }
+        /* レアリティ画像用 */
+        .rarity-img { width: 100%; height: 100%; object-fit: contain; }
+
         .layer-type {
-            z-index: 4; position: absolute; top: 0; right: 0; width: 18px; height: 18px;
-            display: flex; align-items: center; justify-content: center;
+            z-index: 3; position: absolute; top: 0; right: 0; 
+            width: 30%; height: auto; aspect-ratio: 1;
+            display: flex; align-items: flex-start; justify-content: flex-end;
         }
+        /* 属性画像用 */
+        .type-img { width: 100%; height: 100%; object-fit: contain; }
+
         .layer-status {
             z-index: 5; position: absolute; top: 0; left: 0; display: flex; gap: 1px; padding: 2px;
         }
         /* 極限・超極限アイコン (右下) */
         .layer-eza-status {
-            z-index: 5; position: absolute; bottom: 0; right: 0; width: 20px; height: 20px;
+            z-index: 3; position: absolute; bottom: 0; right: 0; 
+            width: 30%; height: auto; aspect-ratio: 1;
             display: flex; align-items: flex-end; justify-content: flex-end; pointer-events: none;
         }
         .eza-icon-img { width: 100%; height: 100%; object-fit: contain; }
@@ -491,13 +504,21 @@
         let typeColor = getAttributeColor(char.type);
         const isOwned = state.owned.includes(char.id);
         const isFav = state.favorites.includes(char.id);
+        
         const imgHtml = `<img src="assets/images/${char.id}.png" class="icon-layer layer-char" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'"><div class="icon-layer layer-char" style="display:none;align-items:center;justify-content:center;color:#555;font-size:10px;background:#333;">IMG</div>`;
+        
+        // Frame Image
         const frameSrc = `assets/frames/${char.rarity}_${char.type}.png`;
         const frameHtml = `<img src="${frameSrc}" class="icon-layer layer-frame" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'"><div class="icon-layer layer-frame" style="display:none; border: 2px solid ${typeColor}; box-sizing:border-box;"></div>`;
+        
+        // Rarity Image
         const raritySrc = `assets/rarities/${char.rarity}.png`;
-        const rarityHtml = `<img src="${raritySrc}" class="layer-rarity" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'"><div class="layer-rarity" style="display:none; background:${getRankColor(char.rarity)};">${char.rarity}</div>`;
-        const typeSrc = `assets/types/${char.type}.png`;
-        const typeHtml = `<img src="${typeSrc}" class="layer-type" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'"><div class="layer-type" style="display:none; background:${typeColor};">${getShortType(char.type)}</div>`;
+        const rarityHtml = `<div class="layer-rarity"><img src="${raritySrc}" class="rarity-img" onerror="this.parentElement.style.background='rgba(0,0,0,0.8)'; this.parentElement.innerHTML='${char.rarity}';"></div>`;
+        
+        // Type Image (Super/Extreme)
+        const typeSrc = `assets/types/${char.class}_${char.type}.png`;
+        const typeHtml = `<div class="layer-type"><img src="${typeSrc}" class="type-img" onerror="this.parentElement.style.background='${typeColor}'; this.parentElement.innerHTML='${getShortType(char.type)}';"></div>`;
+        
         let statusHtml = '';
         if (isOwned || isFav) {
             statusHtml = '<div class="layer-status">';
@@ -506,15 +527,14 @@
             statusHtml += '</div>';
         }
         
-        // EZA Icons
         let ezaHtml = '';
-        if (char.seza) { // Super EZA
+        if (char.seza) { 
              ezaHtml = `<div class="layer-eza-status"><img src="assets/status/seza.png" class="eza-icon-img"></div>`;
-        } else if (char.eza) { // EZA
+        } else if (char.eza) { 
              ezaHtml = `<div class="layer-eza-status"><img src="assets/status/eza.png" class="eza-icon-img"></div>`;
         }
 
-        return `<div class="dokkan-icon">${imgHtml}${frameHtml}${rarityHtml}${typeHtml}${statusHtml}${ezaHtml}</div>`;
+        return `<div class="dokkan-icon">${frameHtml}${imgHtml}${rarityHtml}${typeHtml}${statusHtml}${ezaHtml}</div>`;
     }
     function getRankColor(r) { return (r==='LR') ? 'linear-gradient(45deg, #ff0000, #ffff00)' : (r==='UR') ? '#ff8c00' : '#aaa'; }
     function getShortType(t) { return t ? (t==='AGL'?'速':t==='TEQ'?'技':t==='INT'?'知':t==='STR'?'力':'体') : '?'; }
