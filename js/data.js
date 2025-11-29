@@ -40,8 +40,27 @@ const CHARACTER_DATA = [
                         condition: "登場から1ターンの間",
                         effect: "全ての攻撃を回避"
                     },
-                    // 箇条書きにしたい部分は改行コードで区切ります
-                    main: "自身のATKとDEF77%UP\n3番目に攻撃すると更にATKとDEF77%UPし、必ず追加攻撃し高確率で必殺技が発動\n条件を満たすと変身する",
+                    details: [
+                        {
+                            title: "基本効果",
+                            effects: [
+                                "自身のATKとDEF77%UP"
+                            ]
+                        },
+                        {
+                            title: "攻撃参加時",
+                            effects: [
+                                "3番目に攻撃すると更にATKとDEF77%UP",
+                                "必ず追加攻撃し高確率で必殺技が発動"
+                            ]
+                        },
+                        {
+                            title: "条件",
+                            effects: [
+                                "条件を満たすと変身する"
+                            ]
+                        }
+                    ],
                     maxValues: { crit: "0%", add: "1回", dodge: "100%" }
                 },
                 // リンクスキルは名前の配列にするだけでOK
