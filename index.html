@@ -192,9 +192,13 @@
         }
 
         #tab-bar {
-            height: var(--nav-height); background-color: #18181b; border-top: 1px solid var(--border-color);
-            position: fixed; bottom: 0; width: 100%; display: flex; justify-content: space-around; align-items: center; z-index: 1000;
-            padding-bottom: env(safe-area-inset-bottom);
+            height: 60px; 
+            background-color: #18181b; border-top: 1px solid var(--border-color);
+            position: fixed; bottom: 0; width: 100%; 
+            display: flex; justify-content: space-around; align-items: center; 
+            z-index: 1000;
+            padding-bottom: calc(env(safe-area-inset-bottom) + 10px); 
+            box-sizing: content-box;
         }
         .tab-btn {
             display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -255,68 +259,89 @@
         .char-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 8px; padding: 10px; }
         .char-grid.mode-detail { display: flex; flex-direction: column; gap: 8px; }
         
-        /* --- Composite Icon Styles --- */
+        /* --- Icon Adjustments for "Pop Out" effect --- */
         .dokkan-icon {
-            position: relative; width: 100%; aspect-ratio: 1; overflow: hidden;
-            border-radius: 6px; cursor: pointer;
+            position: relative; width: 100%; aspect-ratio: 1; overflow: visible; /* Allow overflow */
+            cursor: pointer;
+            margin-top: 4px; /* Space for popping head */
         }
         .icon-layer {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             pointer-events: none; background-size: cover; background-position: center;
         }
         
-        /* レイヤー順序修正 */
-        /* 1. Frame (一番奥) */
-        .layer-frame { z-index: 1; border: 0px solid; box-sizing: border-box; }
-        /* 2. Char (中間) */
-        .layer-char { z-index: 2; }  
+        /* Frame (Shrunk and moved down) */
+        .layer-frame { 
+            z-index: 1; 
+            width: 92%; height: 92%; 
+            top: 8%; left: 4%; 
+            border: 0px solid; box-sizing: border-box; 
+        }
         
-        /* 3. Decoration (一番手前) */
+        /* Char (Full size, sits higher than frame) */
+        .layer-char { 
+            z-index: 2; 
+            width: 100%; height: 100%; 
+            top: 0; left: 0;
+        }  
+
+        /* Rarity (Larger, Bottom Left) */
         .layer-rarity { 
-            z-index: 3; position: absolute; bottom: 0; left: 0; 
-            width: 35%; height: auto; aspect-ratio: 22/16; /* 比率維持 */
+            z-index: 3; position: absolute; bottom: -4%; left: -2%; 
+            width: 45%; height: auto; /* Increased size */
             display: flex; align-items: flex-end; justify-content: flex-start;
         }
-        /* レアリティ画像用 */
         .rarity-img { width: 100%; height: 100%; object-fit: contain; }
 
+        /* Type (Top Right) */
         .layer-type {
-            z-index: 3; position: absolute; top: 0; right: 0; 
-            width: 30%; height: auto; aspect-ratio: 1;
+            z-index: 3; position: absolute; top: 0%; right: 0%; 
+            width: 32%; height: auto; aspect-ratio: 1;
             display: flex; align-items: flex-start; justify-content: flex-end;
         }
-        /* 属性画像用 */
         .type-img { width: 100%; height: 100%; object-fit: contain; }
 
-        .layer-status {
-            z-index: 5; position: absolute; top: 0; left: 0; display: flex; gap: 1px; padding: 2px;
-        }
-        /* 極限・超極限アイコン (右下) */
+        /* EZA (Bottom Right) */
         .layer-eza-status {
-            z-index: 3; position: absolute; bottom: 0; right: 0; 
-            width: 30%; height: auto; aspect-ratio: 1;
+            z-index: 3; position: absolute; bottom: 2%; right: 2%; 
+            width: 28%; height: auto; aspect-ratio: 1;
             display: flex; align-items: flex-end; justify-content: flex-end; pointer-events: none;
         }
         .eza-icon-img { width: 100%; height: 100%; object-fit: contain; }
-
-        .status-icon { width: 12px; height: 12px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 8px; color: white; border: 1px solid rgba(0,0,0,0.5); }
+        
+        /* Status Icons (Top Left) */
+        .layer-status {
+            z-index: 5; position: absolute; top: 0px; left: 0px; display: flex; flex-direction: column; gap: 1px;
+        }
+        .status-icon { 
+            width: 14px; height: 14px; border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center; 
+            font-size: 8px; color: white; border: 1px solid rgba(255,255,255,0.8); 
+            box-shadow: 0 1px 2px rgba(0,0,0,0.5);
+        }
         .status-owned { background-color: #4cd964; }
         .status-fav { background-color: #ffd700; color: black; }
 
-        .char-item-row .dokkan-icon { width: 50px; height: 50px; flex-shrink: 0; }
+        .char-item-row .dokkan-icon { width: 50px; height: 50px; flex-shrink: 0; margin-top: 0; overflow: hidden; } /* Reset for list view */
+        .char-item-row .layer-frame { width: 100%; height: 100%; top: 0; left: 0; } /* Reset for list view */
+        
         .detail-icon-large { width: 70px; height: 70px; border-radius: 6px; position: relative; }
-        .char-row-info { flex: 1; }
-        .char-row-name { font-size: 14px; font-weight: bold; line-height: 1.3; margin-bottom: 2px; color: #fff; }
+
+        .char-row-info { flex: 1; min-width: 0; }
+        .char-row-name { font-size: 14px; font-weight: bold; line-height: 1.3; margin-bottom: 2px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .char-row-title { font-size: 10px; color: #888; margin-bottom: 2px;}
         .char-row-stats { font-size: 10px; color: #aaa; margin-top: 4px; display: flex; gap: 8px; }
+
+        /* Link Skill Table Style (Restored) */
+        .link-table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 5px; }
+        .link-table th, .link-table td { padding: 8px 4px; border-bottom: 1px solid #3a3a3e; text-align: left; vertical-align: top; }
+        .link-table tr:last-child td { border-bottom: none; }
+        .link-name { font-weight: bold; color: #f0f0f0; display: block; margin-bottom: 2px; font-size: 12px; }
+        .link-effect-row { display: flex; gap: 6px; font-size: 10px; color: #aaa; margin-top: 1px; }
+        .link-lv-tag { color: #666; font-size: 9px; min-width: 24px; display: inline-block; }
+
         .clickable-tag { cursor: pointer; transition: opacity 0.2s; }
         .clickable-tag:active { opacity: 0.6; }
-        .link-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        .link-card { background-color: #2a2a2e; border: 1px solid var(--border-color); border-radius: 6px; padding: 8px; cursor: pointer; transition: background 0.2s; }
-        .link-card:active { background-color: #333; border-color: #555; }
-        .link-card-name { font-weight: bold; font-size: 11px; margin-bottom: 4px; color: #f0f0f0; }
-        .link-card-effect { font-size: 9px; color: #aaa; line-height: 1.3; }
-        .link-lbl { color: #666; margin-right: 3px; font-size: 8px; }
         #scroll-top-btn { position: fixed; bottom: 80px; right: 20px; width: 44px; height: 44px; border-radius: 50%; background-color: rgba(255, 215, 0, 0.9); color: #000; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; border: 2px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.5); z-index: 900; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
         #scroll-top-btn.visible { opacity: 1; pointer-events: auto; }
         .char-cost { font-size: 10px; color: #ffd700; text-align: center; margin-top: 4px; background: rgba(0,0,0,0.6); border-radius: 10px; padding: 2px 6px; border: 1px solid #555; }
@@ -404,6 +429,14 @@
             if (contentDiv.scrollTop > 300) scrollTopBtn.classList.add('visible');
             else scrollTopBtn.classList.remove('visible');
         });
+        
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js').then(registration => {
+                console.log('ServiceWorker registration successful');
+            }).catch(err => {
+                console.log('ServiceWorker registration failed (expected in preview):', err);
+            });
+        }
     }
 
     function saveState() {
@@ -507,15 +540,15 @@
         
         const imgHtml = `<img src="assets/images/${char.id}.png" class="icon-layer layer-char" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'"><div class="icon-layer layer-char" style="display:none;align-items:center;justify-content:center;color:#555;font-size:10px;background:#333;">IMG</div>`;
         
-        // Frame Image
+        // Frame - Smaller and offset to let char head pop
         const frameSrc = `assets/frames/${char.rarity}_${char.type}.png`;
         const frameHtml = `<img src="${frameSrc}" class="icon-layer layer-frame" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'"><div class="icon-layer layer-frame" style="display:none; border: 2px solid ${typeColor}; box-sizing:border-box;"></div>`;
         
-        // Rarity Image
+        // Rarity - Larger, Bottom Left
         const raritySrc = `assets/rarities/${char.rarity}.png`;
         const rarityHtml = `<div class="layer-rarity"><img src="${raritySrc}" class="rarity-img" onerror="this.parentElement.style.background='rgba(0,0,0,0.8)'; this.parentElement.innerHTML='${char.rarity}';"></div>`;
         
-        // Type Image (Super/Extreme)
+        // Type - Top Right
         const typeSrc = `assets/types/${char.class}_${char.type}.png`;
         const typeHtml = `<div class="layer-type"><img src="${typeSrc}" class="type-img" onerror="this.parentElement.style.background='${typeColor}'; this.parentElement.innerHTML='${getShortType(char.type)}';"></div>`;
         
@@ -582,7 +615,12 @@
         if(clrBtn) state.searchQuery ? clrBtn.classList.add('visible') : clrBtn.classList.remove('visible');
 
         let displayDB = DB.filter(char => {
-            if (query && !char.name.toLowerCase().includes(query) && !char.title?.includes(query)) return false;
+            if (query) {
+                const nameMatch = char.name.toLowerCase().includes(query);
+                const titleMatch = char.title && char.title.includes(query);
+                const yomiMatch = char.yomi && char.yomi.includes(query);
+                if (!nameMatch && !titleMatch && !yomiMatch) return false;
+            }
             if (f.rarities.length && !f.rarities.includes(char.rarity)) return false;
             if (f.types.length && !f.types.includes(char.type)) return false;
             if (f.classes.length && !f.classes.includes(char.class)) return false;
@@ -658,7 +696,17 @@
                     item.className = 'char-item-icon'; item.innerHTML = iconHtml;
                 } else {
                     item.className = 'char-item-row';
-                    item.innerHTML = `<div style="width:50px;height:50px;flex-shrink:0;">${iconHtml}</div><div class="char-row-info"><div class="char-row-title">${char.title || ''}</div><div class="char-row-name">${char.name.replace(/\n/g, ' ')}</div></div>`;
+                    item.innerHTML = `
+                        <div style="width:60px;height:60px;flex-shrink:0;">${iconHtml}</div>
+                        <div class="char-row-info">
+                            <div class="char-row-title">${char.title || ''}</div>
+                            <div class="char-row-name">${char.name.replace(/\n/g, ' ')}</div>
+                            <div class="char-row-stats">
+                                <span>HP ${char.forms && char.forms[0] ? char.forms[0].stats.hp : (char.stats ? char.stats.hp : '---')}</span>
+                                <span>ATK ${char.forms && char.forms[0] ? char.forms[0].stats.atk : (char.stats ? char.stats.atk : '---')}</span>
+                                <span>DEF ${char.forms && char.forms[0] ? char.forms[0].stats.def : (char.stats ? char.stats.def : '---')}</span>
+                            </div>
+                        </div>`;
                 }
                 item.onclick = () => openDetail(char.id);
                 grid.appendChild(item);
@@ -841,12 +889,22 @@
         }
 
         if (currentData.links) {
-            body.innerHTML += `<div class="section-title">リンクスキル</div><div class="link-grid">`;
+            body.innerHTML += `<div class="section-title">リンクスキル</div><div class="w-full mt-2 border-t border-[#3a3a3e]">`;
+            // Reverted to simple table style list for better readability
+            let linkTable = `<table class="link-table">`;
             currentData.links.forEach(linkName => {
                 const effectData = LINKS[linkName] || { lv1: "---", lv10: "---" };
-                body.innerHTML += `<div class="link-card" onclick="applyFilter('link', '${linkName}')"><div class="link-card-name">${linkName}</div><div><span class="link-lbl">Lv1</span><span class="link-card-effect">${formatText(effectData.lv1)}</span></div><div style="margin-top:2px;"><span class="link-lbl">Lv10</span><span class="link-card-effect">${formatText(effectData.lv10)}</span></div></div>`;
+                linkTable += `
+                    <tr onclick="applyFilter('link', '${linkName}')" style="cursor:pointer;">
+                        <td style="border-bottom:1px solid #333; padding:8px 4px;">
+                            <div class="link-name">${linkName}</div>
+                            <div class="link-effect-row"><span class="link-lv-tag">Lv1</span><span>${formatText(effectData.lv1)}</span></div>
+                            <div class="link-effect-row"><span class="link-lv-tag">Lv10</span><span>${formatText(effectData.lv10)}</span></div>
+                        </td>
+                    </tr>`;
             });
-            body.innerHTML += `</div>`;
+            linkTable += `</table>`;
+            body.innerHTML += linkTable + `</div>`;
         }
         
         if (char.partners) {

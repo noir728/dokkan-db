@@ -3,6 +3,7 @@ const CHARACTER_DATA = [
         id: 1018710,
         title: "究極最強の融合",
         name: "ゴジータ",
+        yomi: "ごじーた", // 追加: 平仮名検索用
         rarity: "LR",
         cost: 77,
         type: "STR",
