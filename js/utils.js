@@ -98,11 +98,10 @@ function parsePassiveText(text) {
     return formatted.split('\n').map(line => `<span class="passive-bullet">${line}</span>`).join('');
 }
 
-// ★修正: カテゴリ名（数字入り）と数値ハイライトの競合を防ぐ処理に変更
+// ★修正: プレースホルダー破壊対策
 function formatText(text) {
     if (!text) return "";
 
-    // 1. 先にカテゴリや名称指定などの「リンク化したい部分」を一時的なプレースホルダーに置換して保護する
     const placeholders = [];
     const pushPlaceholder = (str) => {
         placeholders.push(str);
@@ -111,26 +110,33 @@ function formatText(text) {
 
     let processed = text;
 
-    // 名称指定: 名称に「...」
+    // 1. リンク化などの置換（プレースホルダー化）
     processed = processed.replace(/名称に「([^」]+)」/g, (match, name) => {
         const link = `名称に<span class="embedded-link" onclick="applyFilter('name', '${name}')">「${name}」</span>`;
         return pushPlaceholder(link);
     });
 
-    // カテゴリ指定: 「...」
     processed = processed.replace(/「([^」]+)」/g, (match, cat) => {
         const link = `<span class="embedded-link" onclick="applyFilter('category', '${cat}')">「${cat}」</span>`;
         return pushPlaceholder(link);
     });
 
-    // [img:...] アイコンタグも念のため保護
     processed = processed.replace(/\[img:([^\]]+)\]/g, (match, imgName) => {
         const imgTag = `<img src="assets/skills/${imgName}.png" class="inline-skill-icon" onerror="this.style.display='none'">`;
         return pushPlaceholder(imgTag);
     });
 
-    // 2. ここで数値のハイライト処理を行う（保護された部分は対象外になる）
-    processed = processed.replace(/([0-9]+%?|\+[0-9]+)/g, '<span class="hl-num">$1</span>');
+    // 2. 数値ハイライト（★修正: プレースホルダー内の数字は無視する）
+    // 正規表現: (__PH_\d+__) または (数値パターン) にマッチさせる
+    processed = processed.replace(/(__PH_\d+__)|([0-9]+%?|\+[0-9]+)/g, (match, ph, num) => {
+        if (ph) {
+            // プレースホルダーにマッチした場合は何もしない（そのまま返す）
+            return ph; 
+        } else {
+            // 数値にマッチした場合はハイライト
+            return `<span class="hl-num">${match}</span>`;
+        }
+    });
 
     // 3. プレースホルダーを元のHTMLタグに戻す
     processed = processed.replace(/__PH_(\d+)__/g, (match, index) => {
