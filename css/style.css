@@ -385,11 +385,28 @@ body {
 .match-count { position: absolute; bottom: 0; right: 0; background-color: #ff4d4d; color: white; font-size: 10px; padding: 1px 5px; border-top-left-radius: 6px; font-weight: bold; }
 .partner-name { font-size: 10px; color: var(--text-sub); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-width: 56px; margin-top: 2px; }
 
-/* 覚醒ルート & メダル画像 */
-.scroll-container-x { display: flex; align-items: flex-start; gap: 12px; overflow-x: auto; padding-bottom: 10px; }
-.medal-step { display: flex; flex-direction: column; align-items: center; min-width: 50px; }
-.medal-icon-wrapper { width: 50px; height: 50px; margin-bottom: 4px; }
-.medal-icon-wrapper .dokkan-icon { margin-top: 0; width: 100%; height: 100%; }
+/* ▼▼▼ 覚醒ルートのレイアウト修正（横スクロール最適化） ▼▼▼ */
+
+.scroll-container-x {
+    display: flex;
+    align-items: center ; /* 上揃え */
+    gap: 8px; /* 間隔調整 */
+    overflow-x: auto;
+    padding-bottom: 5px; /* スクロールバー用の余白 */
+    padding-top: 0px; /* ★追加: 上に余白を追加して位置を下げる */
+
+    width: 100%;
+    /* スクロールバーをスタイリングしても良い */
+}
+
+/* キャラアイコン部分 */
+.medal-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 50px;
+    flex-shrink: 0; /* ★重要: 縮小させない */
+}
 
 .medal-icon-box { 
     width: 20px; height: 20px; 
@@ -405,13 +422,80 @@ body {
 .medal-img { width: 150%; height: 150%; object-fit: cover; }
 
 .rank-badge { position: absolute; bottom: -2px; right: -2px; background: #000; font-size: 8px; padding: 0 2px; border-radius: 2px; border: 1px solid #555; }
-.transition-area { display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 40px; }
-.medals-req { display: flex; gap: 4px; margin-bottom: 2px; flex-wrap: wrap; justify-content: center; }
-/* ★修正: メダル必要数アイコンの調整 */
-.req-item { 
-    display: flex; flex-direction: column; align-items: center; margin: 0 2px; 
-    position: relative; /* 相対配置 */
+/* 矢印とメダルのエリア */
+.transition-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    flex-shrink: 0;
+    margin-top: 0;
+    position: relative; /* 背景矢印の配置基準 */
+    height: 100%;
+    z-index: 0;
+    /* エフェクトがはみ出さないようにクリップ（必要に応じて） */
+    overflow: hidden; 
+    border-radius: 4px;
 }
+/* メダル一覧コンテナ */
+.medals-req {
+    display: flex;
+    gap: 6px;
+    margin-top: 0; /* マージン削除 */
+    flex-wrap: nowrap; /* ★重要: 折り返し禁止（横に並べる） */
+    justify-content: center;
+    position: static ; /* z-index用 */
+    z-index: 1; /* 矢印より手前に表示 */
+}
+
+/* 個別のメダルアイコン */
+.req-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0;
+    position: relative;
+    /* width は固定しない */
+}
+
+/* 以前のテキスト矢印は非表示にする */
+.arrow-long {
+    display: none;
+}
+
+/* ★変更: 記号の代わりに「光の流れるエフェクト」で流れを表現 */
+.transition-area::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    
+    /* 左から右へ流れる光のグラデーション */
+    background: linear-gradient(
+        90deg, 
+        transparent 0%, 
+        rgba(255, 255, 255, 0.0) 25%, 
+        rgba(255, 255, 255, 0.103) 50%, 
+        rgba(255, 255, 255, 0.0) 75%, 
+        transparent 100%
+    );
+    background-size: 200% 100%;
+    
+    /* アニメーション設定 */
+    animation: flowEffect 1.5s infinite linear;
+    
+    z-index: 2; /* メダルの上（オーバーレイ）に表示 */
+    pointer-events: none; /* タップ操作を透過させる */
+}
+
+@keyframes flowEffect {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
 /* --- メダルアイコン調整 (重ね合わせ対応) --- */
 .req-icon { 
     width: 30px; height: 30px; 
