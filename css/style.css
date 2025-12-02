@@ -13,6 +13,14 @@
     --entry-bg: #2a1f30;
     --entry-border: #9c27b0;
     --nav-height: 60px;
+
+        /* 新規追加: スタンバイ用カラー */
+    --standby-border: #00e5ff; /* シアン系 */
+    --standby-bg: rgba(0, 229, 255, 0.05);
+
+        /* 新規追加: フィールド用カラー */
+    --field-border: #ff00ff; /* マゼンタ系 */
+    --field-bg: #2d1f2d;
 }
 
 body {
@@ -30,6 +38,25 @@ body {
 }
 
 /* Components */
+
+/* ▼▼▼ 画面遷移アニメーション ▼▼▼ */
+.slide-in-right {
+    animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.slide-in-left {
+    animation: slideInLeft 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes slideInRight {
+    from { opacity: 0; transform: translateX(20px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideInLeft {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
+}
 
 .sticky-header-wrapper {
     position: sticky; 
@@ -74,7 +101,7 @@ body {
 .skill-name { font-size: 13px; font-weight: bold; margin-bottom: 8px; color: #8fd3fe; }
 
 /* パッシブテキスト */
-.passive-text { font-size: 14px; line-height: 1.7; white-space: pre-wrap; }
+.passive-text { font-size: 14px; line-height: 1.7; white-space: normal ; }
 .passive-bullet { display: block; margin-bottom: 4px; padding-left: 12px; position: relative; }
 .passive-bullet::before { content: "・"; position: absolute; left: 0; color: #888; }
 .hl-num { color: var(--highlight); font-weight: bold; }
@@ -86,25 +113,271 @@ body {
 .passive-list { font-size: 14px; padding-left: 4px; }
 
 .skill-footer {
-    margin-top: 10px; padding-top: 8px; border-top: 1px dashed #555;
-    display: flex; justify-content: space-between; font-size: 10px; color: #ffcc00; font-weight: bold;
+    margin-top: 12px; 
+    padding-top: 10px; 
+    border-top: 1px dashed #555;
+    display: flex; 
+    justify-content: space-between; 
+    /* font-size: 10px;  削除 */
+    color: #ffcc00; 
+    font-weight: bold;
 }
-.skill-val-item { display: flex; flex-direction: column; align-items: center; }
-.skill-val-label { color: #888; font-size: 9px; margin-bottom: 1px; }
+
+.skill-val-item { 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    flex: 1; 
+}
+
+.skill-val-label { 
+    color: #888; 
+    font-size: 12px; /* ★サイズアップ */
+    margin-bottom: 4px; 
+}
+
+/* アイコンと数値を横並びにするコンテナ */
+.skill-val-content {
+    display: flex;
+    align-items: center;
+    gap: 5px; 
+}
+
+.skill-stat-icon {
+    width: 25px; /* ★サイズアップ */
+    height: 25px; /* ★サイズアップ */
+    object-fit: contain;
+}
+
+.skill-val-text {
+    font-size: 13px; /* ★サイズアップ */
+}
+
+/* ▼▼▼ 追加: パッシブ効果アイコン行 ▼▼▼ */
+.passive-effect-row {
+    display: flex;
+    justify-content: center; 
+    flex-wrap: wrap; /* 数が多いので折り返し許可 */
+    gap: 8px;
+    margin-top: 10px;
+    padding-top: 4px;
+}
+
+.passive-effect-item {
+    background-color: #333;
+    border-radius: 6px; /* 少し丸く */
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #555;
+}
+
+.passive-effect-icon {
+    width: 28px; /* アイコンも少し大きく */
+    height: 28px;
+    object-fit: contain;
+}
 
 .embedded-link { color: #4cd964; border-bottom: 1px dashed #4cd964; cursor: pointer; font-weight: bold; }
 .embedded-link:active { background: rgba(76, 217, 100, 0.2); }
 .entry-effect-box { background-color: var(--entry-bg); border: 1px solid var(--entry-border); border-radius: 6px; padding: 8px; margin-bottom: 10px; }
 .entry-title { color: #e0e0e0; font-size: 10px; font-weight: bold; margin-bottom: 4px; display: inline-block; background: #9c27b0; padding: 1px 6px; border-radius: 4px; }
 
-.super-attack-card { background-color: var(--card-bg); border-top: 3px solid #00ccff; border-radius: 6px; padding: 10px; margin-bottom: 8px; }
+.super-attack-card { background-color: var(--card-bg); border-top: 3px solid #ffffff; border-radius: 6px; padding: 10px; margin-bottom: 8px; }
 .sa-header { display: flex; align-items: center; margin-bottom: 6px; gap: 8px; }
 .sa-ki-badge { background: #333; border: 1px solid #666; color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 10px; font-weight: bold; }
 .sa-lv-badge { background: #000; border: 1px solid #555; color: #ffd700; font-size: 10px; padding: 1px 5px; border-radius: 4px; font-weight: bold; }
 .sa-name { font-size: 13px; font-weight: bold; color: #fff; flex: 1; margin-left: 4px; }
-.sa-type-badge { display: flex; align-items: center; gap: 4px; padding: 1px 4px; border-radius: 3px; border: 1px solid #555; color: #aaa; font-size: 10px; }
+.sa-type-badge { display: flex; align-items: center; gap: 4px; padding: 1px 4px; border-radius: 3px; border: 1px solid #555; color: #aaa; font-size: 12px; }
 .sa-type-icon { width: 30px; height: 30px; object-fit: contain; }
 .sa-effect { font-size: 11px; color: #ccc; line-height: 1.5; margin-top: 4px; }
+
+/* ▼▼▼ スタンバイスキル ▼▼▼ */
+.standby-card {
+    background-color: var(--card-bg);
+    border-top: 3px solid var(--standby-border);
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 15px;
+    border-left: 1px solid #333;
+    border-right: 1px solid #333;
+    border-bottom: 1px solid #333;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    background: linear-gradient(to bottom, var(--standby-bg), var(--card-bg));
+}
+
+.standby-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+    padding-bottom: 5px;
+}
+
+.standby-label {
+    font-size: 10px;
+    background-color: var(--standby-border);
+    color: #000;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+.standby-finish-block {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    text-align: left;
+}
+
+/* フィニッシュ用のヘッダー行（名前と種類を横並び） */
+.finish-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+    flex-wrap: wrap;
+}
+
+/* 左側のラベル（種類など） */
+.finish-type-badge {
+    font-size: 10px;
+    background-color: var(--standby-border); /* 以前の label と同じ配色 */
+    color: #000;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+/* 右側の名前 */
+.finish-name-text {
+    font-size: 13px;
+    font-weight: bold;
+    color: #fff;
+}
+
+
+/* ▼▼▼ フィールド効果 & リバーシブル (左下フローティング) ▼▼▼ */
+
+.field-floating-container {
+    position: fixed;
+    bottom: 80px; /* タブバーの上 */
+    left: 20px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: row; /* 横並び */
+    align-items: flex-end; /* 下揃え */
+    gap: 15px; /* アイコン間の隙間 */
+}
+
+/* 各FAB（アイコン＋吹き出し）をまとめるラッパー */
+.fab-wrapper {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; /* ★変更: 左揃え（ポップアップの基準） */
+    width: 60px; /* ★追加: 幅を固定してズレを防ぐ */
+}
+
+/* 丸いアイコンボタンスタイル */
+.field-icon-btn {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    border: 2px solid var(--field-border);
+    background-color: #000; /* 背景は黒 */
+    position: relative;
+    /* overflow: hidden;  ★削除: はみ出しを許可 */
+    overflow: visible; /* ★追加 */
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    transition: transform 0.1s, box-shadow 0.2s;
+    z-index: 2;
+}
+
+.field-icon-btn:active {
+    transform: scale(0.9);
+}
+
+/* リバーシブル用のスタイル */
+.reversible-icon-btn {
+    border-color: #00ccff; /* 青色 */
+    background-color: transparent; /* 背景透過（キャラを際立たせる場合） */
+    /* 必要なら背景色ありでもOK */
+    background-color: rgba(0, 0, 0, 0.6); 
+}
+
+/* ★追加: リバチェン用画像（はみ出し用） */
+.reversible-icon-img {
+    width: 100%; /* 枠より大きく */
+    height: 100%;
+    object-fit: contain;
+    position: absolute;
+    pointer-events: none; /* クリック透過 */
+}
+
+
+.field-icon-img-round {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.field-icon-fallback-round {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: var(--field-border);
+    background: #222;
+}
+
+/* フィールド詳細（アイコンの上に吹き出し表示） */
+.field-details-popup {
+    display: none;
+    /* margin-bottom: 12px; 削除 */
+    background-color: #1a1a1c;
+    border: 1px solid var(--field-border);
+    border-radius: 8px;
+    padding: 12px;
+    width: 280px;
+    max-width: 70vw;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.8);
+    
+    /* ★変更: 絶対配置にしてレイアウト干渉を防ぐ */
+    position: absolute;
+    bottom: 75px; /* アイコン(60) + 隙間(15) */
+    left: 0; /* アイコンの左端に合わせる */
+    z-index: 10;
+    
+    animation: slideUp 0.2s ease-out;
+}
+
+.field-details-popup.open {
+    display: block;
+}
+
+/* 吹き出しの三角（下側） */
+.field-details-popup::after {
+    content: "";
+    position: absolute;
+    bottom: -6px;
+    /* left: 50%; 削除 */
+    left: 30px; /* ★変更: アイコンの中心(60pxの半分)に合わせる */
+    transform: translateX(-50%);
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid var(--field-border);
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
 
 .partner-scroll { display: flex; overflow-x: auto; gap: 12px; padding: 5px 0 10px 0; }
 .partner-item { text-align: center; min-width: 56px; }
@@ -414,6 +687,100 @@ body {
 .link-name { font-weight: bold; color: #f0f0f0; display: block; margin-bottom: 2px; font-size: 12px; }
 .link-effect-row { display: flex; gap: 6px; font-size: 10px; color: #aaa; margin-top: 1px; }
 .link-lv-tag { color: #666; font-size: 9px; min-width: 24px; display: inline-block; }
+
+/* ▼▼▼ 相性キャラ & 技上げ素材のアイコン化スタイル ▼▼▼ */
+
+/* 横スクロールコンテナ内のアイテム共通 */
+.scroll-item-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 60px; /* アイコンサイズに合わせて調整 */
+    margin-right: 8px;
+    cursor: pointer;
+    position: relative;
+}
+
+/* アイコン自体のラッパー（getCharIconHtmlの出力先） */
+.scroll-icon-box {
+    width: 60px;
+    height: 60px;
+    position: relative;
+    margin-bottom: 4px;
+}
+/* 中身のdokkan-iconを強制的に合わせる */
+.scroll-icon-box .dokkan-icon {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+}
+
+/* 下部のテキスト情報 */
+.scroll-item-info {
+    text-align: center;
+    width: 100%;
+}
+
+/* リンク数バッジ */
+.link-match-badge {
+    font-size: 10px;
+    font-weight: bold;
+    color: #fff;
+    background-color: #333;
+    border: 1px solid #555;
+    padding: 1px 6px;
+    border-radius: 10px;
+    white-space: nowrap;
+}
+.link-match-badge.full-link {
+    background: linear-gradient(45deg, #ff0000, #ff8c00);
+    border-color: #ffcc00;
+    color: #fff;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    animation: pulse 2s infinite;
+}
+
+/* 技上げ素材の確率・ラベル */
+.farm-prob-badge {
+    font-size: 9px;
+    color: #4cd964;
+    background: rgba(76, 217, 100, 0.1);
+    padding: 1px 4px;
+    border-radius: 4px;
+    margin-bottom: 1px;
+    display: inline-block;
+}
+.farm-prob-text {
+    display: block;
+    font-size: 8px;
+    color: #aaa;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 64px;
+    line-height: 1.2;
+}
+
+/* イベント/ガシャのセクション分け */
+.farm-section-row {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.farm-sub-label {
+    font-size: 11px;
+    color: #888;
+    margin-bottom: 4px;
+    border-left: 2px solid #555;
+    padding-left: 6px;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
 
 #scroll-top-btn { position: fixed; bottom: 80px; right: 20px; width: 44px; height: 44px; border-radius: 50%; background-color: rgba(255, 215, 0, 0.9); color: #000; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; border: 2px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.5); z-index: 900; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
 #scroll-top-btn.visible { opacity: 1; pointer-events: auto; }

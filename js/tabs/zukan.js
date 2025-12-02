@@ -218,6 +218,7 @@ function updateFilterUI() {
 
 // --- Navigation & Rendering Functions ---
 
+// 詳細からのタグ検索適用（修正: 履歴を「進む」形にする）
 window.applyFilter = function(type, value) {
     resetFilters(); 
     state.searchQuery = '';
@@ -228,8 +229,17 @@ window.applyFilter = function(type, value) {
     
     updateFilterUI();
     
-    if(typeof window.closeDetail === 'function') window.closeDetail();
-    state.currentTab = 'zukan';
+    // ★変更: closeDetail(戻る) ではなく、新しいステートをプッシュして一覧へ遷移する
+    state.detailCharId = null;
+    state.animDirection = 'left'; // 一覧に戻るアニメーション
+    
+    // URLパラメータ(id)を削除した新しいURLを作成
+    const url = new URL(window.location);
+    url.searchParams.delete('id');
+    
+    // 現在のフィルタ状態とともにプッシュ
+    window.history.pushState({ filter: state.filter, searchQuery: state.searchQuery }, '', url);
+
     if(typeof updateTabUI === 'function') updateTabUI();
     if(typeof render === 'function') render();
     if(typeof window.scrollToTop === 'function') window.scrollToTop();
@@ -291,6 +301,47 @@ function renderZukanLayout() {
         renderZukanList();
     }
 }
+
+// renderZukanLayout の修正も必要です。
+// 以下、既存の renderZukanLayout をオーバーライドする形で追記します。
+const originalRenderZukanLayout = window.renderZukanLayout;
+window.renderZukanLayout = function() {
+    const contentDiv = document.getElementById('main-content');
+    if(!contentDiv) return;
+
+    // ヘッダー生成（既存ロジック）
+    let header = document.getElementById('zukan-header-el');
+    if (!header || !contentDiv.contains(header)) {
+        contentDiv.innerHTML = '';
+        header = document.createElement('div');
+        header.id = 'zukan-header-el';
+        header.className = 'zukan-header';
+        header.innerHTML = `
+            <div class="search-container"><div class="search-wrapper"><input type="text" id="zukan-search-input" class="search-bar" placeholder="名前、二つ名で検索..." value="${state.searchQuery}"><button id="search-clear-btn" class="search-clear-btn" onclick="clearSearch()">×</button></div></div>
+            <div class="action-row"><button id="zukan-filter-btn" class="filter-btn" onclick="openFilterModal()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>絞り込み<span id="filter-badge" style="display:none; background:var(--highlight);color:black;font-size:10px;padding:2px 5px;border-radius:10px;margin-left:4px;"></span></button><div class="sort-select-wrapper"><select id="sort-select" class="sort-select-main" onchange="setSort(this.value)"><option value="releaseDesc">実装日: 新しい順</option><option value="releaseAsc">実装日: 古い順</option><option value="rarityDesc">レアリティ: 高い順</option><option value="rarityAsc">レアリティ: 低い順</option><option value="costDesc">コスト: 高い順</option><option value="costAsc">コスト: 低い順</option><option value="hpDesc">HP: 高い順</option><option value="atkDesc">ATK: 高い順</option><option value="defDesc">DEF: 高い順</option></select></div><div class="mode-switch"><div class="mode-btn ${state.listMode === 'icon' ? 'active' : ''}" onclick="setListMode('icon')"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M4 4h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 10h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 16h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4z"/></svg></div><div class="mode-btn ${state.listMode === 'detail' ? 'active' : ''}" onclick="setListMode('detail')"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg></div></div></div><div class="text-xs text-gray-500" id="zukan-count" style="margin-top:4px; text-align:right;">---</div>
+            `;
+        header.querySelector('input').addEventListener('input', (e) => { state.searchQuery = e.target.value; renderZukanList(); });
+        contentDiv.appendChild(header);
+        
+        const grid = document.createElement('div');
+        grid.id = 'zukan-grid';
+        contentDiv.appendChild(grid);
+        renderZukanList(grid);
+    } else {
+        renderZukanList();
+    }
+
+    // ★一覧に戻ってきたときのアニメーション
+    // state.animDirection === 'left' の場合のみ適用
+    if (state.animDirection === 'left') {
+        const grid = document.getElementById('zukan-grid');
+        if (grid) {
+            grid.classList.remove('slide-in-right'); // 念のため
+            grid.classList.add('slide-in-left');
+        }
+        // state.animDirection = ''; // リセット
+    }
+};
 
 // ★修正: grid要素を引数でも受け取れるようにする（確実性向上）
 function renderZukanList(targetGrid) {
@@ -427,18 +478,143 @@ function renderZukanList(targetGrid) {
     });
 }
 
+
+// --- Helper Functions for Auto Calculation ---
+
+// 相性キャラ計算 (修正: 覚醒ルートの最終形態のみ対象)
+function calcPartners(targetChar, currentForm) {
+    if (!currentForm.links || currentForm.links.length === 0) return [];
+    const targetLinks = new Set(currentForm.links);
+    const results = [];
+    const myLinkCount = currentForm.links.length;
+
+    DB.forEach(char => {
+        // 自分自身は除外
+        if (char.id === targetChar.id) return;
+
+        // ★追加: 覚醒ルートの最終形態（一番右）チェック
+        // awakeningデータがあり、かつIDを持つステップが存在する場合
+        if (char.awakening && char.awakening.length > 0) {
+            // IDが定義されているステップのみを抽出
+            const stepsWithId = char.awakening.filter(step => step.id !== undefined && step.id !== null);
+            
+            if (stepsWithId.length > 0) {
+                // 配列の最後（一番右）のIDを取得
+                const lastStepId = stepsWithId[stepsWithId.length - 1].id;
+                
+                // 現在のキャラIDが最終IDと異なる場合は、途中形態なのでスキップ
+                // (例: URのID != LRのID ならURはスキップ)
+                if (char.id !== lastStepId) {
+                    return; 
+                }
+            }
+        }
+
+        let maxMatch = 0;
+        const check = (links) => {
+            if (!links) return;
+            const m = links.filter(l => targetLinks.has(l)).length;
+            if (m > maxMatch) maxMatch = m;
+        };
+        check(char.links);
+        if (char.forms) char.forms.forEach(f => check(f.links));
+        if (char.forms_eza) char.forms_eza.forEach(f => check(f.links));
+        if (char.forms_seza) char.forms_seza.forEach(f => check(f.links));
+
+        if (maxMatch >= 3) {
+            results.push({
+                char: char, 
+                match: maxMatch,
+                isFull: (maxMatch === myLinkCount) || (maxMatch >= 7)
+            });
+        }
+    });
+    results.sort((a, b) => b.match - a.match);
+    return results.slice(0, 15);
+}
+
+// ★修正: 技上げ素材検索 (SSRのみ & ルート上の任意の同名キャラ)
+function calcFarmCards(targetChar) {
+    const names = new Set();
+    
+    // 1. 対象キャラ自身の名前
+    names.add(targetChar.name);
+    
+    // 2. 覚醒ルート上の全キャラの名前を収集
+    if (targetChar.awakening) {
+        targetChar.awakening.forEach(step => {
+            if (step.id) {
+                const stepChar = DB.find(c => c.id === step.id);
+                if (stepChar) {
+                    names.add(stepChar.name);
+                }
+            }
+        });
+    }
+
+    // 3. 収集した名前のいずれかに一致し、SSR以上のキャラを検索
+    // (targetChar自身は除外)
+    const matches = DB.filter(c => 
+        names.has(c.name) && 
+        c.id !== targetChar.id && 
+        c.rarity === 'SSR'
+    );
+    
+    const events = [];
+    const gashas = [];
+
+    matches.forEach(c => {
+        // source_type: 'event' or 'gasha'
+        let isEvent = false;
+        if (c.source_type) {
+            isEvent = (c.source_type === 'event');
+        } else {
+            // fallback: cost check (<= 20 likely event/f2p)
+            isEvent = (c.cost <= 20); 
+        }
+
+        if (isEvent) events.push(c);
+        else gashas.push(c);
+    });
+
+    // Sort priority? Let's leave as db order or rarity/id
+    // const sorter = (a, b) => ...
+    
+    return { events, gashas };
+}
+
+
 // --- Detail View Logic ---
 
 function openDetail(id) {
+    // 戻る操作のために履歴追加
+    const url = new URL(window.location);
+    url.searchParams.set('id', id);
+    window.history.pushState({ id: id }, '', url);
+
     state.detailCharId = id;
     state.detailFormIndex = 0;
     state.detailEzaMode = 'normal';
+    
+    // ★アニメーション方向設定
+    state.animDirection = 'right'; // 右からイン
+    
     if(typeof render === 'function') render();
     if(typeof scrollToTop === 'function') scrollToTop();
 }
 
 function closeDetail() {
+    // 履歴を戻す
+    const url = new URL(window.location);
+    if (url.searchParams.has('id')) {
+        window.history.back();
+        // popstateイベントで render が呼ばれるのを待つ
+        return; 
+    }
+    
+    // 万が一パラメータがない場合などは直接閉じる
     state.detailCharId = null;
+    state.animDirection = 'left'; // 左からイン（戻る）
     if(typeof render === 'function') render();
 }
 
@@ -476,12 +652,35 @@ function toggleEzaSwitch(el) {
     setEzaMode(nextMode);
 }
 
+// フィールド詳細のトグル表示用関数
+window.toggleFieldInfo = function(btn) {
+    // ボタン(アイコン)の兄弟要素である詳細divを取得
+    // 構造が変わったため、btn.nextElementSibling ではなく、コンテナ内の .field-details-popup を探す
+    const container = btn.closest('.field-floating-container');
+    const details = container.querySelector('.field-details-popup');
+    
+    if (details.classList.contains('open')) {
+        details.classList.remove('open');
+    } else {
+        details.classList.add('open');
+    }
+};
 function renderCharacterDetail(id) {
     const contentDiv = document.getElementById('main-content');
     contentDiv.innerHTML = ''; 
     const char = DB.find(c => c.id === id);
     if(!char) return;
     
+    // ★アニメーションクラスの適用
+    const animClass = state.animDirection === 'right' ? 'slide-in-right' : 'slide-in-left';
+    // 次回のためにリセット（または保持）
+    // state.animDirection = ''; 
+
+    // コンテナにアニメーションクラスを付与
+    const container = document.createElement('div');
+    container.className = `detail-container-wrapper ${animClass}`;
+    // ※CSSで .detail-container-wrapper { width: 100%; } を定義推奨（なくてもdivなのでblock）
+
     let targetForms = char.forms;
     if (state.detailEzaMode === 'eza' && char.forms_eza) targetForms = char.forms_eza;
     if (state.detailEzaMode === 'seza' && char.forms_seza) targetForms = char.forms_seza;
@@ -491,7 +690,6 @@ function renderCharacterDetail(id) {
     const displayName = (currentData.name || char.name || "").replace(/\n/g, '<br>');
     const displayRawName = (currentData.name || char.name || "").split('\n')[0];
 
-    const container = document.createElement('div');
     
     // Header
     const header = document.createElement('div');
@@ -500,9 +698,10 @@ function renderCharacterDetail(id) {
         <div class="header-left">
             <button class="back-btn" onclick="closeDetail()">←</button>
             <div>
-                <div class="date-info" style="font-size:10px; color:#888; display:flex; gap:5px; margin-bottom:2px;">
+                <div class="date-info" style="font-size:10px; color:#888; display:flex; gap:5px; margin-bottom:2px; flex-wrap: wrap;">
                     <span style="border:1px solid #444; padding:1px 4px; border-radius:3px;">実装: ${char.release || '---'}</span>
                     ${char.eza ? `<span style="background:#4a2c00; color:#ffa500; border:1px solid #804000; padding:1px 4px; border-radius:3px;">極限: ${char.eza}</span>` : ''}
+                    ${char.seza ? `<span style="background:#2a004a; color:#e080ff; border:1px solid #d300ff; padding:1px 4px; border-radius:3px;">超極限: ${char.seza}</span>` : ''}
                 </div>
                 <div class="char-sub-header">${char.title || ''}</div>
                 <div class="char-name-header clickable-tag" onclick="applyFilter('name', '${displayRawName}')">${displayName}</div>
@@ -521,13 +720,26 @@ function renderCharacterDetail(id) {
     const controlsContainer = document.createElement('div');
     controlsContainer.className = 'tabs-control-row';
 
-    // Tabs
+    // Tabs (★修正: グループ分けによる完全分離)
     if (targetForms && targetForms.length > 0) {
         const tabRow = document.createElement('div');
         tabRow.className = 'transform-tabs';
+        
+        // 現在のフォームのタイプを取得 ("0", "1", undefined など)
+        // undefined(空欄) と "0" は別グループとして扱うか、
+        // あるいは空欄は「通常(0)と同じ」とみなすかは運用次第ですが、
+        // ここでは「値が完全に一致するものだけを表示」する厳密なロジックにします。
+        // ※ただし、空欄(undefined)同士はグループ化します。
+        const currentRevType = String(currentData.reversible_type || "");
+
         targetForms.forEach((form, idx) => {
-            const isActive = state.detailFormIndex === idx ? 'active' : '';
-            tabRow.innerHTML += `<div class="transform-tab-item ${isActive}" onclick="setDetailForm(${idx})">${form.label || '形態'+(idx+1)}</div>`;
+            const formRevType = String(form.reversible_type || "");
+            
+            // タイプが一致するものだけを表示
+            if (formRevType === currentRevType) {
+                const isActive = state.detailFormIndex === idx ? 'active' : '';
+                tabRow.innerHTML += `<div class="transform-tab-item ${isActive}" onclick="setDetailForm(${idx})">${form.label || '形態'+(idx+1)}</div>`;
+            }
         });
         controlsContainer.appendChild(tabRow);
     } else {
@@ -546,7 +758,7 @@ function renderCharacterDetail(id) {
             <div class="eza-switch">
                 <div class="eza-switch-item ${mode === 'normal' ? 'active' : ''}" onclick="setEzaMode('normal')">通常</div>
                 <div class="eza-switch-item ${mode === 'eza' ? 'active active-eza' : ''} ${!hasEza ? 'disabled' : ''}" onclick="${hasEza ? "setEzaMode('eza')" : ""}">極限</div>
-                <div class="eza-switch-item ${mode === 'seza' ? 'active active-seza' : ''} ${!hasSeza ? 'disabled' : ''}" onclick="${hasSeza ? "setEzaMode('seza')" : ""}">超極</div>
+                <div class="eza-switch-item ${mode === 'seza' ? 'active active-seza' : ''} ${!hasSeza ? 'disabled' : ''}" onclick="${hasSeza ? "setEzaMode('seza')" : ""}">超極限</div>
             </div>`;
         controlsContainer.appendChild(ezaSwitch);
     }
@@ -637,11 +849,27 @@ function renderCharacterDetail(id) {
         body.innerHTML += `<div class="section-title">リーダースキル</div><div class="skill-card"><div class="passive-text">${formatText(displayLeaderSkill)}</div></div>`;
     }
 
-    // Passive
+    // Passive (修正: 最大ステータス4種 + アイコン表示 + 効果アイコン列)
     if (currentData.passive) {
         let content = '';
+        // 登場時演出
         if (currentData.passive.intro) {
-            content += `<div class="entry-effect-box"><div class="entry-title">登場時演出</div><div class="passive-text">${formatText(currentData.passive.intro.condition)}<br>${formatText(currentData.passive.intro.effect)}</div></div>`;
+            const conditionHtml = formatText(currentData.passive.intro.condition);
+            
+            // 効果テキストを改行で分割し、パッシブ詳細と同じ処理（アイコン置換、数値ハイライト）を適用
+            const effectsList = currentData.passive.intro.effect.split('\n').map(line => {
+                let processed = line.replace(/\[img:([^\]]+)\]/g, '<img src="assets/skills/$1.png" class="inline-skill-icon" onerror="this.style.display=\'none\'">')
+                                    .replace(/([0-9]+%?|\+[0-9]+)/g, '<span class="hl-num">$1</span>');
+                return `<div class="passive-bullet">${processed}</div>`;
+            }).join('');
+
+            content += `<div class="entry-effect-box">
+                <div class="entry-title">登場時演出</div>
+                <div class="passive-group" style="margin-top:6px;">
+                    <div class="passive-title">${conditionHtml}</div>
+                    <div class="passive-list">${effectsList}</div>
+                </div>
+            </div>`;
         }
         if (currentData.passive.details) {
             currentData.passive.details.forEach(group => {
@@ -660,15 +888,122 @@ function renderCharacterDetail(id) {
         } else {
             content += `<div class="passive-text">${parsePassiveText(currentData.passive.main)}</div>`;
         }
+        
+        // ▼▼▼ 最大ステータス & 効果アイコン ▼▼▼
         if (currentData.passive.maxValues) {
-            content += `<div class="skill-footer"><div class="skill-val-item"><span class="skill-val-label">最大会心</span><span>${currentData.passive.maxValues.crit||'-'}</span></div><div class="skill-val-item"><span class="skill-val-label">最大必殺追撃</span><span>${currentData.passive.maxValues.add||'-'}</span></div><div class="skill-val-item"><span class="skill-val-label">最大回避</span><span>${currentData.passive.maxValues.dodge||'-'}</span></div></div>`;
+            const mv = currentData.passive.maxValues;
+            
+            // 4つの最大ステータス（アイコン付き）
+            content += `
+            <div class="skill-footer">
+                <div class="skill-val-item">
+                    <span class="skill-val-label">最大会心</span>
+                    <div class="skill-val-content">
+                        <img src="assets/skills/icon_crit.png" class="skill-stat-icon" onerror="this.style.display='none'">
+                        <span class="skill-val-text">${mv.crit || '-'}</span>
+                    </div>
+                </div>
+                <div class="skill-val-item">
+                    <span class="skill-val-label">最大必殺追撃</span>
+                    <div class="skill-val-content">
+                        <img src="assets/skills/icon_add.png" class="skill-stat-icon" onerror="this.style.display='none'">
+                        <span class="skill-val-text">${mv.add || '-'}</span>
+                    </div>
+                </div>
+                <div class="skill-val-item">
+                    <span class="skill-val-label">最大軽減</span>
+                    <div class="skill-val-content">
+                        <img src="assets/skills/icon_reduce.png" class="skill-stat-icon" onerror="this.style.display='none'">
+                        <span class="skill-val-text">${mv.reduce || '-'}</span>
+                    </div>
+                </div>
+                <div class="skill-val-item">
+                    <span class="skill-val-label">最大回避</span>
+                    <div class="skill-val-content">
+                        <img src="assets/skills/icon_dodge.png" class="skill-stat-icon" onerror="this.style.display='none'">
+                        <span class="skill-val-text">${mv.dodge || '-'}</span>
+                    </div>
+                </div>
+            </div>`;
+
+            // 追加効果アイコン（全属性ガード、効果抜群など）
+            let effectIcons = '';
+            if (mv.effective) {
+                effectIcons += `<div class="passive-effect-item"><img src="assets/skills/icon_effective.png" class="passive-effect-icon" title="全属性効果抜群"></div>`;
+            }
+            if (mv.guard) {
+                effectIcons += `<div class="passive-effect-item"><img src="assets/skills/icon_guard.png" class="passive-effect-icon" title="全属性ガード"></div>`;
+            }
+            if (mv.action_break) {
+                effectIcons += `<div class="passive-effect-item"><img src="assets/skills/icon_action_break.png" class="passive-effect-icon" title="アクションブレイク"></div>`;
+            }
+            if (mv.revival) {
+                effectIcons += `<div class="passive-effect-item"><img src="assets/skills/icon_revival.png" class="passive-effect-icon" title="復活"></div>`;
+            }
+            if (mv.stun) {
+                effectIcons += `<div class="passive-effect-item"><img src="assets/skills/icon_stun.png" class="passive-effect-icon" title="気絶"></div>`;
+            }
+            if (mv.seal) {
+                effectIcons += `<div class="passive-effect-item"><img src="assets/skills/icon_seal.png" class="passive-effect-icon" title="必殺封じ"></div>`;
+            }
+            if (mv.counter) {
+                effectIcons += `<div class="passive-effect-item"><img src="assets/skills/icon_counter.png" class="passive-effect-icon" title="反撃"></div>`;
+            }
+            if (mv.survive_ko) {
+                effectIcons += `<div class="passive-effect-item"><img src="assets/skills/icon_survive.png" class="passive-effect-icon" title="KOダメージに耐える"></div>`;
+            }
+            if (effectIcons) {
+                content += `<div class="passive-effect-row">${effectIcons}</div>`;
+            }
         }
+        // ▲▲▲ ここまで ▲▲▲
+
         body.innerHTML += `<div class="section-title">パッシブスキル</div><div class="skill-card"><div class="skill-name">${currentData.passive.name}</div>${content}</div>`;
     }
 
     // Active
     if (currentData.active) {
         body.innerHTML += `<div class="section-title">アクティブスキル</div><div class="skill-card"><div class="skill-name">${currentData.active.name}</div><div class="passive-text"><span style="color:var(--highlight); font-weight:bold;">[条件]</span> ${formatText(currentData.active.condition)}<br><span style="color:var(--highlight); font-weight:bold;">[効果]</span> ${formatText(currentData.active.effect)}</div></div>`;
+    }
+
+// ▼▼▼ スタンバイスキル (修正: 種類をラベルとして左配置) ▼▼▼
+    if (currentData.standby) {
+        const sb = currentData.standby;
+        const sbTypeLabel = sb.type || 'STANDBY';
+        
+        const finishes = Array.isArray(sb.finish) ? sb.finish : (sb.finish ? [sb.finish] : []);
+        
+        let finishesHtml = '';
+        finishes.forEach((fin, idx) => {
+            // タイプが指定されていればそれを使用、なければデフォルト表記
+            const labelText = fin.type || `フィニッシュ${finishes.length > 1 ? " " + (idx+1) : ""}`;
+            
+            finishesHtml += `
+                <div class="standby-finish-block" style="text-align: left;">
+                    <div class="finish-header">
+                        <span class="finish-type-badge">${labelText}</span>
+                        <span class="finish-name-text">${fin.name || '---'}</span>
+                    </div>
+                    <div class="passive-text" style="text-align: left;">
+                        <span style="color:var(--highlight); font-weight:bold;">[条件]</span> ${formatText(fin.condition)}<br>
+                        <span style="color:var(--highlight); font-weight:bold;">[効果]</span> ${formatText(fin.effect)}
+                    </div>
+                </div>`;
+        });
+
+        body.innerHTML += `
+            <div class="section-title" style="color: var(--standby-border); border-left-color: var(--standby-border);">スタンバイスキル</div>
+            <div class="standby-card">
+                <div class="standby-header">
+                    <div class="skill-name" style="margin-bottom:0; color: #fff;">${sb.name}</div>
+                </div>
+                <div class="passive-text" style="text-align: left;">
+                    <span style="color:var(--highlight); font-weight:bold;">[条件]</span> ${formatText(sb.condition)}<br>
+                    <span style="color:var(--highlight); font-weight:bold;">[効果]</span> ${formatText(sb.effect)}
+                </div>
+                ${finishesHtml}
+            </div>
+        `;
     }
 
     // Super Attacks
@@ -695,6 +1030,7 @@ function renderCharacterDetail(id) {
         body.innerHTML += catHtml;
     }
 
+    //Links
     if (currentData.links) {
         let linkHtml = `<div class="section-title">リンクスキル</div><div class="w-full mt-2 border-t border-[#3a3a3e]"><table class="link-table">`;
         currentData.links.forEach(linkName => {
@@ -705,23 +1041,163 @@ function renderCharacterDetail(id) {
         body.innerHTML += linkHtml;
     }
     
-    if (char.partners) {
+    // ▼▼▼ 相性キャラ自動表示 (修正: アイコン化 + フルリンク表示) ▼▼▼
+    const partners = calcPartners(char, currentData);
+    if (partners.length > 0) {
         let partnersHtml = '';
-        char.partners.forEach(p => {
-            let typeColor = getAttributeColor(p.type);
-            partnersHtml += `<div class="partner-item"><div class="partner-icon" style="border-color:${typeColor}"><div class="img-placeholder">IMG</div><div class="match-count">${p.match}</div></div><div class="partner-name">${p.name}</div></div>`;
+        partners.forEach(p => {
+            // p.char がキャラデータ本体、p.match が一致数
+            const iconHtml = getCharIconHtml(p.char); // 既存の関数でリッチなアイコンを生成
+            
+            let labelHtml = `リンク: ${p.match}`;
+            let badgeClass = "link-match-badge";
+            
+            if (p.isFull) {
+                labelHtml = "フルリンク";
+                badgeClass += " full-link";
+            }
+
+            partnersHtml += `
+                <div class="scroll-item-wrapper" onclick="openDetail(${p.char.id})">
+                    <div class="scroll-icon-box">${iconHtml}</div>
+                    <div class="scroll-item-info">
+                        <span class="${badgeClass}">${labelHtml}</span>
+                    </div>
+                </div>`;
         });
         body.innerHTML += `<div class="section-title">相性の良いキャラ</div><div class="partner-scroll">${partnersHtml}</div>`;
     }
 
-    if (char.farmCards) {
-        body.innerHTML += `<div class="section-title">技上げ素材</div><div class="scroll-container-x">`;
-        char.farmCards.forEach(card => { body.innerHTML += `<div class="farm-card"><div class="farm-card-icon">IMG<div class="rank-badge">${card.rarity}</div></div><div class="farm-card-stage">${card.stage}</div><div class="farm-card-prob">${card.prob}</div></div>`; });
-        body.innerHTML += `</div>`;
+    // ★修正: 技上げ素材 (確率表記削除 & SSRのみ & ガシャ産ラベル削除)
+    const farmResult = calcFarmCards(char);
+    if (farmResult.events.length > 0 || farmResult.gashas.length > 0) {
+        let farmHtml = `<div class="section-title">技上げ素材</div>`;
+        
+        const createFarmItem = (card, labelText, isGasha = false) => {
+            const iconHtml = getCharIconHtml(card);
+            // 確率表記は削除 (要望: "確率表記削除")
+            // ラベル: イベントならイベント名、ガシャなら無し
+            const displayLabel = isGasha ? "" : labelText;
+
+            return `
+                <div class="scroll-item-wrapper" onclick="openDetail(${card.id})">
+                    <div class="scroll-icon-box">${iconHtml}</div>
+                    <div class="scroll-item-info">
+                        ${displayLabel ? `<span class="farm-prob-badge" title="${displayLabel}" style="font-size:8px;max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block;">${displayLabel}</span>` : ''}
+                    </div>
+                </div>`;
+        };
+
+        if (farmResult.events.length > 0) {
+            farmHtml += `<div class="farm-section-row"><div class="farm-sub-label">イベント</div><div class="scroll-container-x">`;
+            farmResult.events.forEach(c => {
+                farmHtml += createFarmItem(c, c.drop_event || "Event");
+            });
+            farmHtml += `</div></div>`;
+        }
+
+        if (farmResult.gashas.length > 0) {
+            farmHtml += `<div class="farm-section-row" style="margin-top:10px;"><div class="farm-sub-label">ガシャ</div><div class="scroll-container-x">`;
+            farmResult.gashas.forEach(c => {
+                farmHtml += createFarmItem(c, "", true);
+            });
+            farmHtml += `</div></div>`;
+        }
+
+        body.innerHTML += farmHtml;
     }
 
     container.appendChild(body);
     contentDiv.appendChild(container);
+
+// ▼▼▼ フィールド効果 & リバーシブル (左下フローティング / 横並び対応) ▼▼▼
+    
+    // コンテナ生成準備
+    const fabContainer = document.createElement('div');
+    fabContainer.className = 'field-floating-container';
+    let hasFab = false;
+
+    // 1. フィールド効果 (現在のフォームが持っている場合)
+    if (currentData.field) {
+        hasFab = true;
+        const fd = currentData.field;
+        const initial = fd.name ? fd.name.charAt(0) : 'F';
+        const fieldHtml = `
+            <div class="fab-wrapper">
+                <div class="field-details-popup">
+                    <div class="skill-name" style="color:#e080ff; margin-bottom:5px;">${fd.name}</div>
+                    <div class="passive-text">
+                        <span style="color:var(--highlight); font-weight:bold;">[条件]</span> ${formatText(fd.condition)}<br>
+                        <span style="color:var(--highlight); font-weight:bold;">[効果]</span> ${formatText(fd.effect)}
+                    </div>
+                </div>
+                <div class="field-icon-btn" onclick="toggleFieldInfo(this)">
+                    <img src="assets/icons/${fd.icon}.png" class="field-icon-img-round" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                    <div class="field-icon-fallback-round" style="display:none;">${initial}</div>
+                </div>
+            </div>`;
+        fabContainer.innerHTML += fieldHtml;
+    }
+
+    // 2. リバーシブルチェンジ (改修: グループ先頭のみ表示)
+    if (targetForms && targetForms.length > 0) {
+        
+        const currentRevType = String(currentData.reversible_type || ""); 
+        const hasReversibleForm = targetForms.some(f => f.reversible_type !== undefined && f.reversible_type !== "");
+        
+        if (hasReversibleForm) {
+            let nextIndex = -1;
+            let showButton = false;
+
+            if (currentRevType === "") {
+                showButton = false;
+            } else {
+                // ★追加ロジック: 現在のフォームが、その「タイプ」グループの先頭かどうか判定
+                const firstIndexOfType = targetForms.findIndex(f => String(f.reversible_type || "") === currentRevType);
+                
+                // 表示中のフォームインデックスが、そのグループの先頭と一致する場合のみボタンを出す
+                if (state.detailFormIndex === firstIndexOfType) {
+                    
+                    if (currentRevType === "0") {
+                        // 元(0) -> 先(0以外)へ
+                        const destIndex = targetForms.findIndex(f => f.reversible_type !== undefined && String(f.reversible_type) !== "" && String(f.reversible_type) !== "0");
+                        if (destIndex !== -1) {
+                            nextIndex = destIndex;
+                            showButton = true;
+                        }
+                    } else {
+                        // 先(0以外) -> 元(0)へ
+                        let sourceIndex = targetForms.findIndex(f => String(f.reversible_type) === "0");
+                        if (sourceIndex === -1) sourceIndex = 0;
+                        
+                        nextIndex = sourceIndex;
+                        showButton = true;
+                    }
+                }
+            }
+
+            if (showButton && nextIndex !== -1) {
+                hasFab = true;
+                const iconName = currentData.reversible_icon || "RC_Button";
+                
+                const isTargetMode = (currentRevType !== "0" && currentRevType !== "");
+                const borderStyle = isTargetMode ? 'border-color: #ffd700;' : '';
+
+                const revHtml = `
+                    <div class="fab-wrapper">
+                        <div class="field-icon-btn reversible-icon-btn" onclick="setDetailForm(${nextIndex})" style="${borderStyle}">
+                            <img src="assets/icons/${iconName}.png" class="reversible-icon-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                            <div class="field-icon-fallback-round" style="display:none; color:#00ccff;">R</div>
+                        </div>
+                    </div>`;
+                fabContainer.innerHTML += revHtml;
+            }
+        }
+    }
+
+    if (hasFab) {
+        contentDiv.appendChild(fabContainer);
+    }
 }
 
 // Expose all needed functions to window

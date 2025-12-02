@@ -39,10 +39,24 @@ function init() {
     const savedFav = localStorage.getItem('dokkan_fav');
     if(savedFav) state.favorites = JSON.parse(savedFav);
     
-    // From zukan.js (exposed globally)
     if(typeof populateFilterOptions === 'function') populateFilterOptions();
     
-    render(); 
+    // ▼▼▼ 初期ロード: URLパラメータのチェック ▼▼▼
+    const urlParams = new URLSearchParams(window.location.search);
+    const charId = urlParams.get('id');
+    if (charId && DB.some(c => c.id == charId)) {
+        // 詳細画面を開く (zukan.jsの関数)
+        if(typeof openDetail === 'function') {
+            // 初期表示なのでpushStateはしない（現在のURLをそのまま使う）
+            // ただし openDetail はデフォルトで pushState するので、
+            // 履歴に追加したくない場合は flag を渡す設計にしてもよいが、
+            // ここでは簡易的にそのまま呼ぶ (履歴が1つ増えるが許容)
+            // あるいは zukan.js の openDetail に skipPushState 引数を追加する（実装済み）
+            openDetail(Number(charId), true); 
+        }
+    } else {
+        render(); 
+    }
     
     contentDiv.addEventListener('scroll', () => {
         if (contentDiv.scrollTop > 300) scrollTopBtn.classList.add('visible');
@@ -54,6 +68,38 @@ function init() {
     }
 }
 
+// ▼▼▼ Popstate Handler (Improved) ▼▼▼
+window.addEventListener('popstate', (event) => {
+    // 1. Restore Filters
+    if (event.state) {
+        if (event.state.filter) state.filter = event.state.filter;
+        if (event.state.searchQuery !== undefined) state.searchQuery = event.state.searchQuery;
+    } else {
+        // Reset if no state (e.g. back to initial)
+        if (typeof resetFilters === 'function') resetFilters(); 
+    }
+
+    // 2. Navigation Logic
+    // Compare new desired ID (event.state.id) with current (state.detailCharId)
+    const newId = (event.state && event.state.id) ? event.state.id : null;
+    const currentId = state.detailCharId;
+
+    if (newId) {
+        // Moving to Detail (from List or another Detail)
+        state.detailCharId = newId;
+        state.detailFormIndex = 0;
+        state.detailEzaMode = 'normal';
+        state.animDirection = 'right'; // Entering detail
+    } else {
+        // Moving to List
+        state.detailCharId = null;
+        state.animDirection = 'left'; // Returning to list
+    }
+
+    // Force Render
+    render();
+});
+
 function saveState() {
     localStorage.setItem('dokkan_owned', JSON.stringify(state.owned));
     localStorage.setItem('dokkan_fav', JSON.stringify(state.favorites));
@@ -61,7 +107,15 @@ function saveState() {
 
 function switchTab(tabName) { 
     state.currentTab = tabName; 
-    state.detailCharId = null; // Reset detail view on tab switch
+    
+    // Clear Detail State when switching tabs
+    if (state.detailCharId) {
+        state.detailCharId = null;
+        const url = new URL(window.location);
+        url.searchParams.delete('id');
+        // Push a clean state for the new tab
+        window.history.pushState({ filter: state.filter, searchQuery: state.searchQuery }, '', url);
+    }
     updateTabUI(); 
     render(); 
 }
