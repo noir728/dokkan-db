@@ -688,6 +688,62 @@ body {
 .link-effect-row { display: flex; gap: 6px; font-size: 10px; color: #aaa; margin-top: 1px; }
 .link-lv-tag { color: #666; font-size: 9px; min-width: 24px; display: inline-block; }
 
+/* ▼▼▼ 更新通知ロード画面（オーバーレイ） ▼▼▼ */
+.loading-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background-color: rgba(16, 16, 18, 0.95); /* 背景色に合わせて少し透過 */
+    z-index: 9999; /* 最前面 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(5px);
+    transition: opacity 0.3s;
+}
+
+.loading-overlay.hidden {
+    display: none;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.loading-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+/* スピナー（回転リング） */
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(255, 255, 255, 0.1);
+    border-top: 4px solid var(--highlight); /* テーマカラーの黄色 */
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 20px;
+}
+
+.loading-text {
+    font-size: 18px;
+    font-weight: bold;
+    color: #fff;
+    margin-bottom: 8px;
+}
+
+.loading-sub-text {
+    font-size: 12px;
+    color: #888;
+    line-height: 1.5;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
 /* ▼▼▼ 相性キャラ & 技上げ素材のアイコン化スタイル ▼▼▼ */
 
 /* 横スクロールコンテナ内のアイテム共通 */

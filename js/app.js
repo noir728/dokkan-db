@@ -63,8 +63,52 @@ function init() {
         else scrollTopBtn.classList.remove('visible');
     });
     
+    // ▼▼▼ Service Worker 更新検知ロジック ▼▼▼
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('service-worker.js').catch(err => {});
+        navigator.serviceWorker.register('service-worker.js').then(reg => {
+            
+            // アップデートが見つかった場合（ダウンロード開始）
+            reg.onupdatefound = () => {
+                const installingWorker = reg.installing;
+                if (!installingWorker) return;
+
+                // 既にコントロールされている場合（=初回アクセスではなく更新の場合）のみロード画面を出す
+                if (navigator.serviceWorker.controller) {
+                    showUpdateLoading();
+                }
+
+                installingWorker.onstatechange = () => {
+                    // インストール完了（待機状態）になったら
+                    if (installingWorker.state === 'installed') {
+                        if (navigator.serviceWorker.controller) {
+                            console.log('New content is available; please refresh.');
+                            // service-worker.js 側で skipWaiting しているので、
+                            // 自動的に controllerchange が発火してリロードされるはず
+                        } else {
+                            console.log('Content is cached for offline use.');
+                        }
+                    }
+                };
+            };
+        }).catch(err => {
+            console.error('Service Worker registration failed:', err);
+        });
+
+        // 新しいSWがアクティブになったらリロード
+        let refreshing = false;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+            if (refreshing) return;
+            refreshing = true;
+            window.location.reload();
+        });
+    }
+}
+
+// ロード画面を表示する関数
+function showUpdateLoading() {
+    const overlay = document.getElementById('update-overlay');
+    if (overlay) {
+        overlay.classList.remove('hidden');
     }
 }
 
