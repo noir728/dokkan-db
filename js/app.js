@@ -11,6 +11,8 @@ const state = {
     listMode: 'icon',
     owned: [],
     favorites: [],
+    zukanScrollTop: 0,
+
     
     searchQuery: '',
     filter: { 
@@ -150,6 +152,12 @@ function saveState() {
 }
 
 function switchTab(tabName) { 
+
+    // ★追加: タブ切り替え時はスクロール位置をリセット
+    if (state.currentTab !== tabName) {
+        state.zukanScrollTop = 0;
+    }
+
     state.currentTab = tabName; 
     
     // Clear Detail State when switching tabs

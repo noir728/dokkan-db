@@ -4,28 +4,42 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Dokkan DB App</title>
-
-    <!-- ▼▼▼ 追加: PWA用設定 ▼▼▼ -->
-    <!-- Android / Chrome用 -->
-    <link rel="manifest" href="manifest.json">
-    <!-- iOS / Safari用 -->
-    <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
-    <!-- テーマカラー（アドレスバーの色など） -->
-    <meta name="theme-color" content="#101012">
-    <!-- ▲▲▲ 追加ここまで ▲▲▲ -->
-
-    <script src="https://cdn.tailwindcss.com"></script>
     
-    <script src="js/categories.js"></script>
-    <script src="js/link_skills.js"></script>
-    <script src="js/data.js"></script>
+    <!-- =========================================
+         PWA (Progressive Web App) 設定
+         ========================================= -->
+    <!-- Android / Chrome用マニフェスト -->
+    <link rel="manifest" href="manifest.json">
+    <!-- iOS / Safari用アイコン -->
+    <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
+    <!-- ブラウザのテーマカラー -->
+    <meta name="theme-color" content="#101012">
 
-    <!-- 自作のスタイルシートを読み込み -->
+    <!-- =========================================
+         外部ライブラリ & スタイル
+         ========================================= -->
+    <!-- Tailwind CSS (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 自作スタイルシート -->
     <link rel="stylesheet" href="css/style.css">
+    
+    <!-- =========================================
+         データ定義スクリプト (定数など)
+         ========================================= -->
+    <!-- カテゴリ一覧 -->
+    <script src="js/categories.js"></script>
+    <!-- リンクスキル一覧 -->
+    <script src="js/link_skills.js"></script>
+    <!-- キャラクターデータ本体 -->
+    <script src="js/data.js"></script>
 </head>
 <body>
 
 <div id="app">
+    
+    <!-- =========================================
+         広告エリア (Google AdSense)
+         ========================================= -->
     <div id="ad-container">
         <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1030489185043718"
             crossorigin="anonymous"></script>
@@ -38,64 +52,180 @@
             (adsbygoogle = window.adsbygoogle || []).push({});
         </script>
     </div>
-    <div id="main-content"></div>
+
+    <!-- =========================================
+         メインコンテンツエリア
+         ========================================= -->
+    <div id="main-content">
+        <!-- JSによってここにリストや詳細画面が描画されます -->
+    </div>
+    
+    <!-- トップへ戻るボタン -->
     <div id="scroll-top-btn" onclick="scrollToTop()">TOP</div>
     
-    <!-- Filter Modal -->
+    <!-- =========================================
+         絞り込み (Filter) モーダル
+         ========================================= -->
     <div id="filter-modal" class="modal-overlay">
         <div class="filter-modal">
             <h2 style="font-size:16px; font-weight:bold; margin-bottom:20px; text-align:center;">絞り込み条件</h2>
             
-            <div class="filter-section"><span class="filter-label">検索条件</span><div class="toggle-group"><div class="toggle-item selected" id="logic-and" onclick="setFilterLogic('AND')">すべて満たす (AND)</div><div class="toggle-item" id="logic-or" onclick="setFilterLogic('OR')">どれか満たす (OR)</div></div></div>
-            
+            <!-- 検索ロジック (AND/OR) -->
             <div class="filter-section">
-                <div class="filter-header"><span class="filter-label">属性 (Type)</span><div class="toggle-mini" onclick="toggleMiniLogic('type')" id="logic-btn-type"><span class="toggle-mini-opt">AND</span><span class="toggle-mini-opt active">OR</span><div class="toggle-mini-slider" style="transform:translateX(33px); background-color: var(--accent-str);"></div></div></div>
-                <div class="filter-chips" id="filter-types"><div class="filter-chip" onclick="toggleFilter('type', 'AGL')">速属性</div><div class="filter-chip" onclick="toggleFilter('type', 'TEQ')">技属性</div><div class="filter-chip" onclick="toggleFilter('type', 'INT')">知属性</div><div class="filter-chip" onclick="toggleFilter('type', 'STR')">力属性</div><div class="filter-chip" onclick="toggleFilter('type', 'PHY')">体属性</div></div>
+                <span class="filter-label">検索条件</span>
+                <div class="toggle-group">
+                    <div class="toggle-item selected" id="logic-and" onclick="setFilterLogic('AND')">すべて満たす (AND)</div>
+                    <div class="toggle-item" id="logic-or" onclick="setFilterLogic('OR')">どれか満たす (OR)</div>
+                </div>
             </div>
             
+            <!-- 属性 (Type) -->
             <div class="filter-section">
-                <div class="filter-header"><span class="filter-label">属性区分 (Class)</span><div class="toggle-mini" onclick="toggleMiniLogic('class')" id="logic-btn-class"><span class="toggle-mini-opt">AND</span><span class="toggle-mini-opt active">OR</span><div class="toggle-mini-slider" style="transform:translateX(33px); background-color: var(--accent-str);"></div></div></div>
-                <div class="filter-chips" id="filter-classes"><div class="filter-chip" onclick="toggleFilter('class', 'Super')">超系</div><div class="filter-chip" onclick="toggleFilter('class', 'Extreme')">極系</div></div>
+                <div class="filter-header">
+                    <span class="filter-label">属性 (Type)</span>
+                    <div class="toggle-mini" onclick="toggleMiniLogic('type')" id="logic-btn-type">
+                        <span class="toggle-mini-opt">AND</span>
+                        <span class="toggle-mini-opt active">OR</span>
+                        <div class="toggle-mini-slider" style="transform:translateX(33px); background-color: var(--accent-str);"></div>
+                    </div>
+                </div>
+                <div class="filter-chips" id="filter-types">
+                    <div class="filter-chip" onclick="toggleFilter('type', 'AGL')">速属性</div>
+                    <div class="filter-chip" onclick="toggleFilter('type', 'TEQ')">技属性</div>
+                    <div class="filter-chip" onclick="toggleFilter('type', 'INT')">知属性</div>
+                    <div class="filter-chip" onclick="toggleFilter('type', 'STR')">力属性</div>
+                    <div class="filter-chip" onclick="toggleFilter('type', 'PHY')">体属性</div>
+                </div>
             </div>
             
+            <!-- 属性区分 (Class) -->
             <div class="filter-section">
-                <div class="filter-header"><span class="filter-label">レアリティ</span><div class="toggle-mini" onclick="toggleMiniLogic('rarity')" id="logic-btn-rarity"><span class="toggle-mini-opt">AND</span><span class="toggle-mini-opt active">OR</span><div class="toggle-mini-slider" style="transform:translateX(33px); background-color: var(--accent-str);"></div></div></div>
-                <div class="filter-chips" id="filter-rarities"><div class="filter-chip" onclick="toggleFilter('rarity', 'LR')">LR</div><div class="filter-chip" onclick="toggleFilter('rarity', 'UR')">UR</div><div class="filter-chip" onclick="toggleFilter('rarity', 'SSR')">SSR</div><div class="filter-chip" onclick="toggleFilter('rarity', 'SR')">SR</div></div>
+                <div class="filter-header">
+                    <span class="filter-label">属性区分 (Class)</span>
+                    <div class="toggle-mini" onclick="toggleMiniLogic('class')" id="logic-btn-class">
+                        <span class="toggle-mini-opt">AND</span>
+                        <span class="toggle-mini-opt active">OR</span>
+                        <div class="toggle-mini-slider" style="transform:translateX(33px); background-color: var(--accent-str);"></div>
+                    </div>
+                </div>
+                <div class="filter-chips" id="filter-classes">
+                    <div class="filter-chip" onclick="toggleFilter('class', 'Super')">超系</div>
+                    <div class="filter-chip" onclick="toggleFilter('class', 'Extreme')">極系</div>
+                </div>
             </div>
             
-            <div class="filter-section"><span class="filter-label">状態 (Status)</span><div class="filter-chips" id="filter-status"><div class="filter-chip" onclick="toggleFilter('status', 'owned')">所持済み</div><div class="filter-chip" onclick="toggleFilter('status', 'favorite')">お気に入り</div></div></div>
-            
-            <div class="filter-section"><span class="filter-label">極限状態</span><div class="filter-chips" id="filter-eza"><div class="filter-chip" onclick="toggleFilter('eza', 'none')">通常</div><div class="filter-chip" onclick="toggleFilter('eza', 'eza')">極限Z覚醒</div><div class="filter-chip" onclick="toggleFilter('eza', 'seza')">超極限</div></div></div>
-            
-            <div class="filter-section"><span class="filter-label">必殺技の種類</span><div class="filter-chips" id="filter-sa-type"><div class="filter-chip" onclick="toggleFilter('saType', '気弾')">気弾</div><div class="filter-chip" onclick="toggleFilter('saType', '格闘')">格闘</div><div class="filter-chip" onclick="toggleFilter('saType', '物理')">物理</div><div class="filter-chip" onclick="toggleFilter('saType', 'その他')">その他</div></div></div>
-            
+            <!-- レアリティ -->
             <div class="filter-section">
-                <div class="filter-header"><span class="filter-label">カテゴリ</span><div class="toggle-mini" onclick="toggleMiniLogic('category')" id="logic-btn-category"><span class="toggle-mini-opt active">AND</span><span class="toggle-mini-opt">OR</span><div class="toggle-mini-slider"></div></div></div>
+                <div class="filter-header">
+                    <span class="filter-label">レアリティ</span>
+                    <div class="toggle-mini" onclick="toggleMiniLogic('rarity')" id="logic-btn-rarity">
+                        <span class="toggle-mini-opt">AND</span>
+                        <span class="toggle-mini-opt active">OR</span>
+                        <div class="toggle-mini-slider" style="transform:translateX(33px); background-color: var(--accent-str);"></div>
+                    </div>
+                </div>
+                <div class="filter-chips" id="filter-rarities">
+                    <div class="filter-chip" onclick="toggleFilter('rarity', 'LR')">LR</div>
+                    <div class="filter-chip" onclick="toggleFilter('rarity', 'UR')">UR</div>
+                    <div class="filter-chip" onclick="toggleFilter('rarity', 'SSR')">SSR</div>
+                    <div class="filter-chip" onclick="toggleFilter('rarity', 'SR')">SR</div>
+                </div>
+            </div>
+            
+            <!-- 所持・お気に入り状態 -->
+            <div class="filter-section">
+                <span class="filter-label">状態 (Status)</span>
+                <div class="filter-chips" id="filter-status">
+                    <div class="filter-chip" onclick="toggleFilter('status', 'owned')">所持済み</div>
+                    <div class="filter-chip" onclick="toggleFilter('status', 'favorite')">お気に入り</div>
+                </div>
+            </div>
+            
+            <!-- 極限覚醒状態 -->
+            <div class="filter-section">
+                <span class="filter-label">極限状態</span>
+                <div class="filter-chips" id="filter-eza">
+                    <div class="filter-chip" onclick="toggleFilter('eza', 'none')">通常</div>
+                    <div class="filter-chip" onclick="toggleFilter('eza', 'eza')">極限Z覚醒</div>
+                    <div class="filter-chip" onclick="toggleFilter('eza', 'seza')">超極限</div>
+                </div>
+            </div>
+            
+            <!-- 必殺技区分 -->
+            <div class="filter-section">
+                <span class="filter-label">必殺技の種類</span>
+                <div class="filter-chips" id="filter-sa-type">
+                    <div class="filter-chip" onclick="toggleFilter('saType', '気弾')">気弾</div>
+                    <div class="filter-chip" onclick="toggleFilter('saType', '格闘')">格闘</div>
+                    <div class="filter-chip" onclick="toggleFilter('saType', '物理')">物理</div>
+                    <div class="filter-chip" onclick="toggleFilter('saType', 'その他')">その他</div>
+                </div>
+            </div>
+            
+            <!-- カテゴリ検索 -->
+            <div class="filter-section">
+                <div class="filter-header">
+                    <span class="filter-label">カテゴリ</span>
+                    <div class="toggle-mini" onclick="toggleMiniLogic('category')" id="logic-btn-category">
+                        <span class="toggle-mini-opt active">AND</span>
+                        <span class="toggle-mini-opt">OR</span>
+                        <div class="toggle-mini-slider"></div>
+                    </div>
+                </div>
                 <input list="category-list" id="cat-input" class="filter-select-input" placeholder="カテゴリを検索..." onchange="addFilterFromInput('category', this)">
                 <datalist id="category-list"><!-- JS Populated --></datalist>
                 <div class="filter-chips" id="selected-cats" style="margin-top:10px;"></div>
             </div>
             
+            <!-- リンクスキル検索 -->
             <div class="filter-section">
-                <div class="filter-header"><span class="filter-label">リンクスキル</span><div class="toggle-mini" onclick="toggleMiniLogic('link')" id="logic-btn-link"><span class="toggle-mini-opt active">AND</span><span class="toggle-mini-opt">OR</span><div class="toggle-mini-slider"></div></div></div>
+                <div class="filter-header">
+                    <span class="filter-label">リンクスキル</span>
+                    <div class="toggle-mini" onclick="toggleMiniLogic('link')" id="logic-btn-link">
+                        <span class="toggle-mini-opt active">AND</span>
+                        <span class="toggle-mini-opt">OR</span>
+                        <div class="toggle-mini-slider"></div>
+                    </div>
+                </div>
                 <input list="link-list" id="link-input" class="filter-select-input" placeholder="リンクスキルを検索..." onchange="addFilterFromInput('link', this)">
                 <datalist id="link-list"><!-- JS Populated --></datalist>
                 <div class="filter-chips" id="selected-links" style="margin-top:10px;"></div>
             </div>
 
-            <div class="filter-actions"><button class="btn-reset" onclick="resetFilters()">リセット</button><button class="btn-apply" onclick="closeFilterModal()">完了</button></div>
+            <!-- アクションボタン -->
+            <div class="filter-actions">
+                <button class="btn-reset" onclick="resetFilters()">リセット</button>
+                <button class="btn-apply" onclick="closeFilterModal()">完了</button>
+            </div>
         </div>
     </div>
 
+    <!-- =========================================
+         下部タブバー (Navigation)
+         ========================================= -->
     <div id="tab-bar">
-        <button class="tab-btn active" onclick="switchTab('zukan')"><svg class="tab-icon" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg><span style="font-size:10px;">図鑑</span></button>
-        <button class="tab-btn" onclick="switchTab('events')"><svg class="tab-icon" viewBox="0 0 24 24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg><span style="font-size:10px;">イベント</span></button>
-        <button class="tab-btn" onclick="switchTab('party')"><svg class="tab-icon" viewBox="0 0 24 24"><path d="M14.5 17.5L3 6V3h3l11.5 11.5"></path><path d="M13 19l6-6"></path><path d="M16 16l4 4"></path><path d="M19 21l2-2"></path></svg><span style="font-size:10px;">編成</span></button>
-        <button class="tab-btn" onclick="switchTab('box')"><svg class="tab-icon" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg><span style="font-size:10px;">BOX</span></button>
+        <button class="tab-btn active" onclick="switchTab('zukan')">
+            <svg class="tab-icon" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+            <span style="font-size:10px;">図鑑</span>
+        </button>
+        <button class="tab-btn" onclick="switchTab('events')">
+            <svg class="tab-icon" viewBox="0 0 24 24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg>
+            <span style="font-size:10px;">イベント</span>
+        </button>
+        <button class="tab-btn" onclick="switchTab('party')">
+            <svg class="tab-icon" viewBox="0 0 24 24"><path d="M14.5 17.5L3 6V3h3l11.5 11.5"></path><path d="M13 19l6-6"></path><path d="M16 16l4 4"></path><path d="M19 21l2-2"></path></svg>
+            <span style="font-size:10px;">編成</span>
+        </button>
+        <button class="tab-btn" onclick="switchTab('box')">
+            <svg class="tab-icon" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+            <span style="font-size:10px;">BOX</span>
+        </button>
     </div>
 </div>
 
-<!-- ▼▼▼ 追加: 更新通知オーバーレイ ▼▼▼ -->
+<!-- =========================================
+     更新通知ローディング画面 (Overlay)
+     ========================================= -->
 <div id="update-overlay" class="loading-overlay hidden">
     <div class="loading-content">
         <div class="spinner"></div>
@@ -103,16 +233,23 @@
         <p class="loading-sub-text">新しいデータをダウンロードしています<br>完了後、自動的に再読み込みします</p>
     </div>
 </div>
-<!-- ▲▲▲ 追加ここまで ▲▲▲ -->
 
-<script src="js/utils.js"></script>       <!-- 便利ツール -->
-<script src="js/tabs/zukan.js"></script>  <!-- 図鑑ロジック -->
-<script src="js/app.js"></script>         <!-- アプリ全体管理 -->
+<!-- =========================================
+     アプリケーションロジック
+     ========================================= -->
+<!-- 共通ユーティリティ (HTML生成など) -->
+<script src="js/utils.js"></script>
+<!-- 図鑑タブのロジック -->
+<script src="js/tabs/zukan.js"></script>
+<!-- アプリ全体の管理・初期化 -->
+<script src="js/app.js"></script>
 
-<!-- ▼▼ 修正: アプリ起動スクリプトを追加 ▼▼ -->
+<!-- =========================================
+     起動スクリプト
+     ========================================= -->
 <script>
-    // DOM読み込み完了後にアプリを初期化
     window.addEventListener('DOMContentLoaded', () => {
+        // app.js の init() を呼び出してアプリを開始
         if (typeof init === 'function') {
             init();
         }

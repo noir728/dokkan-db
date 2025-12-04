@@ -112,14 +112,28 @@ const CHARACTER_DATA = [
                         "maxLv": 25,
                         "type": "格闘",
                         "name": "メトロアタック(極限)",
-                        "effect": "ATKが上昇、1ターンDEFが上昇し、相手に極大ダメージを与える"
+                        "effect": "ATKが上昇、1ターンDEFが上昇し、相手に極大ダメージを与える",
+                        "specs": {
+                            "atk_up": "無限",
+                            "def_up": "1ターン",
+                            "crit": "100%",
+                            "action_break": true,
+                            "atk_down": "20%"
+                        }
                     },
                     {
                         "ki": "18~",
                         "maxLv": 25,
                         "type": "気弾",
                         "name": "かめはめ波(極限)",
-                        "effect": "ATKが上昇、1ターンDEFが大幅上昇し、相手に超極大ダメージを与える"
+                        "effect": "ATKが上昇、1ターンDEFが大幅上昇し、相手に超極大ダメージを与える",
+                        "specs": {
+                            "atk_up": "無限",
+                            "def_up": "1ターン",
+                            "crit": "100%",
+                            "action_break": true,
+                            "atk_down": "20%"
+                        }
                     }
                 ],
                 "passive": {
@@ -170,13 +184,21 @@ const CHARACTER_DATA = [
                         "stun": true,
                         "seal": true,
                         "counter": true,
-                        "survive_ko": true
+                        "survive_ko": true,
+                        "target": true,
                     }
                 },
                 "active": {
                     "name": "アクティブ名",
                     "condition": "条件",
-                    "effect": "効果"
+                    "effect": "効果",
+                    "specs": {
+                            "atk_up": "無限",
+                            "def_up": "1ターン",
+                            "crit": "100%",
+                            action_break: true,
+
+                        }
                 },
                 "standby": {
                     "name": "スタンバイ名",
@@ -2424,7 +2446,7 @@ const CHARACTER_DATA = [
                         "count": 15
                     },
                     {
-                        "name": "z/宿命のライバル編3/12",
+                        "name": "zb/宿命のライバル編3/12",
                         "count": 40
                     },
                     {
@@ -2432,7 +2454,7 @@ const CHARACTER_DATA = [
                         "count": 30
                     },
                     {
-                        "name": "zb/宿命のライバル編314",
+                        "name": "zb/宿命のライバル編3/14",
                         "count": 30
                     }
                 ]
@@ -2555,7 +2577,7 @@ const CHARACTER_DATA = [
                         "count": 15
                     },
                     {
-                        "name": "z/宿命のライバル編3/12",
+                        "name": "zb/宿命のライバル編3/12",
                         "count": 40
                     },
                     {
@@ -2563,7 +2585,7 @@ const CHARACTER_DATA = [
                         "count": 30
                     },
                     {
-                        "name": "zb/宿命のライバル編314",
+                        "name": "zb/宿命のライバル編3/14",
                         "count": 30
                     }
                 ]

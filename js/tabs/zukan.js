@@ -481,6 +481,57 @@ function renderZukanList(targetGrid) {
 
 // --- Helper Functions for Auto Calculation ---
 
+function getSpecsHtml(specs) {
+    if (!specs) return "";
+    
+    let html = '<div class="sa-specs-footer">';
+    let hasContent = false;
+
+    // アイテム生成用ヘルパー
+    // textが true の場合は defaultText を表示。文字列ならそのまま表示。
+    const addItem = (iconName, text, className = "", defaultText = "") => {
+        let displayText = text;
+        if (text === true && defaultText) displayText = defaultText;
+        if (text === true && !defaultText) displayText = ""; // テキストなし
+
+        let textHtml = displayText ? `<span class="sa-spec-text">${displayText}</span>` : "";
+        
+        html += `<div class="sa-spec-item ${className}"><img src="assets/skills/${iconName}.png" class="sa-spec-icon" onerror="this.style.display='none'">${textHtml}</div>`;
+        hasContent = true;
+    };
+
+    // --- ステータス変動 (既存) ---
+    if (specs.atk_up) addItem('icon_atk_up', specs.atk_up, 'spec-up');
+    if (specs.def_up) addItem('icon_def_up', specs.def_up, 'spec-up');
+    if (specs.atk_down) addItem('icon_atk_down', specs.atk_down, 'spec-down');
+    if (specs.def_down) addItem('icon_def_down', specs.def_down, 'spec-down');
+
+    // --- 確率・数値系 (パッシブ下部と同様) ---
+    if (specs.crit) addItem('icon_crit', specs.crit);     // 会心
+    if (specs.add) addItem('icon_add', specs.add);       // 追撃
+    if (specs.dodge) addItem('icon_dodge', specs.dodge);   // 回避
+    if (specs.reduce) addItem('icon_reduce', specs.reduce); // 軽減
+
+    // --- 特殊効果系 (パッシブ最下部と同様) ---
+    if (specs.effective) addItem('icon_effective', specs.effective, '', '');
+    if (specs.guard) addItem('icon_guard', specs.guard, '', '');
+    if (specs.action_break) addItem('icon_action_break', specs.action_break, '', '');
+    if (specs.revival) addItem('icon_revival', specs.revival, '', '');
+    if (specs.stun) addItem('icon_stun', specs.stun, '', '');
+    if (specs.seal) addItem('icon_seal', specs.seal, '', '');
+    if (specs.counter) addItem('icon_counter', specs.counter, '', '');
+
+    // ★追加: ターゲット集中
+    if (specs.target) addItem('icon_target', specs.target, '', 'タゲ集中');
+    
+    // KO耐え (survive または survive_ko)
+    const surviveVal = specs.survive || specs.survive_ko;
+    if (surviveVal) addItem('icon_survive', surviveVal, '', '');
+
+    html += '</div>';
+    return hasContent ? html : "";
+}
+
 // 相性キャラ計算 (修正: 覚醒ルートの最終形態のみ対象)
 function calcPartners(targetChar, currentForm) {
     if (!currentForm.links || currentForm.links.length === 0) return [];
@@ -591,6 +642,12 @@ function openDetail(id) {
     const url = new URL(window.location);
     url.searchParams.set('id', id);
     window.history.pushState({ id: id }, '', url);
+
+    // ★追加: 開く前に現在のスクロール位置を保存
+    const content = document.getElementById('main-content');
+    if (content) {
+        state.zukanScrollTop = content.scrollTop;
+    }
 
     state.detailCharId = id;
     state.detailFormIndex = 0;
@@ -977,6 +1034,8 @@ function renderCharacterDetail(id) {
             if (mv.survive_ko) {
                 effectIcons += `<div class="passive-effect-item"><img src="assets/skills/icon_survive.png" class="passive-effect-icon" title="KOダメージに耐える"></div>`;
             }
+            if (mv.target) effectIcons += `<div class="passive-effect-item"><img src="assets/skills/icon_target.png" class="passive-effect-icon" title="ターゲット集中"></div>`;
+
             if (effectIcons) {
                 content += `<div class="passive-effect-row">${effectIcons}</div>`;
             }
@@ -986,9 +1045,21 @@ function renderCharacterDetail(id) {
         body.innerHTML += `<div class="section-title">パッシブスキル</div><div class="skill-card"><div class="skill-name">${currentData.passive.name}</div>${content}</div>`;
     }
 
-    // Active
+    // ▼▼▼ アクティブスキル (修正: specsアイコン表示) ▼▼▼
     if (currentData.active) {
-        body.innerHTML += `<div class="section-title">アクティブスキル</div><div class="skill-card"><div class="skill-name">${currentData.active.name}</div><div class="passive-text"><span style="color:var(--highlight); font-weight:bold;">[条件]</span> ${formatText(currentData.active.condition)}<br><span style="color:var(--highlight); font-weight:bold;">[効果]</span> ${formatText(currentData.active.effect)}</div></div>`;
+        body.innerHTML += `<div class="section-title">アクティブスキル</div>`;
+        
+        const specsHtml = getSpecsHtml(currentData.active.specs);
+        
+        body.innerHTML += `
+            <div class="skill-card">
+                <div class="skill-name">${currentData.active.name}</div>
+                <div class="passive-text">
+                    <span style="color:var(--highlight); font-weight:bold;">[条件]</span> ${formatText(currentData.active.condition)}<br>
+                    <span style="color:var(--highlight); font-weight:bold;">[効果]</span> ${formatText(currentData.active.effect)}
+                </div>
+                ${specsHtml}
+            </div>`;
     }
 
 // ▼▼▼ スタンバイスキル (修正: 種類をラベルとして左配置) ▼▼▼
@@ -1031,16 +1102,28 @@ function renderCharacterDetail(id) {
         `;
     }
 
-    // Super Attacks
+    // ▼▼▼ 必殺技 (修正: specsアイコン表示) ▼▼▼
     if (currentData.superAttacks) {
         body.innerHTML += `<div class="section-title">必殺技</div>`;
         currentData.superAttacks.forEach(sa => {
             let color = (sa.ki && sa.ki.includes("18")) ? "#ff4d4d" : "#00ccff";
             let typeIcon = `<span class="sa-type-badge">${sa.type}</span>`;
-            if(sa.type) {
-                typeIcon = `<div class="sa-type-badge"><img src="assets/sa_types/${sa.type}.png" class="sa-type-icon" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span>${sa.type}</span></div>`;
-            }
-            body.innerHTML += `<div class="super-attack-card" style="border-top-color: ${color};"><div class="sa-header"><span class="sa-ki-badge" style="background:${color};">気力 ${sa.ki || '12'}</span>${sa.maxLv ? `<span class="sa-lv-badge">Lv${sa.maxLv}</span>` : ''}<span class="sa-name">${sa.name}</span>${typeIcon}</div><div class="sa-effect">${formatText(sa.effect)}</div></div>`;
+            if(sa.type) typeIcon = `<div class="sa-type-badge"><img src="assets/sa_types/${sa.type}.png" class="sa-type-icon" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span>${sa.type}</span></div>`;
+            
+            // スペック（効果）アイコンの生成
+            const specsHtml = getSpecsHtml(sa.specs);
+
+            body.innerHTML += `
+                <div class="super-attack-card" style="border-top-color: ${color};">
+                    <div class="sa-header">
+                        <span class="sa-ki-badge" style="background:${color};">気力 ${sa.ki || '12'}</span>
+                        ${sa.maxLv ? `<span class="sa-lv-badge">Lv${sa.maxLv}</span>` : ''}
+                        <span class="sa-name">${sa.name}</span>
+                        ${typeIcon}
+                    </div>
+                    <div class="sa-effect">${formatText(sa.effect)}</div>
+                    ${specsHtml}
+                </div>`;
         });
     }
 
@@ -1134,6 +1217,11 @@ function renderCharacterDetail(id) {
 
     container.appendChild(body);
     contentDiv.appendChild(container);
+
+    // ★追加: 戻ってきた場合はスクロール位置を復元
+    if (state.detailCharId === null && state.zukanScrollTop > 0) {
+        contentDiv.scrollTop = state.zukanScrollTop;
+    }
 
 // ▼▼▼ フィールド効果 & リバーシブル (左下フローティング / 横並び対応) ▼▼▼
     
