@@ -815,20 +815,45 @@ function renderCharacterDetail(id) {
             sRainbow = currentData.stats.rainbow;
             sFifty   = currentData.stats.fifty || { hp:0, atk:0, def:0 };
             sBase    = currentData.stats.base || { hp:0, atk:0, def:0 };
-        } else {
+        } 
+        // パターンB: データが単一の場合（ここを修正）
+        // 入力値を「ベース(0%)」とみなして加算計算する
+        else {
             const base = currentData.stats;
-            const calc = (val, diff) => {
-                const v = Number(val);
-                if(isNaN(v)) return '---';
-                return (v - diff > 0 ? v - diff : 0);
-            };
+            
             if(base.hp) {
-                sRainbow = base;
-                sFifty   = { hp: calc(base.hp, 3000), atk: calc(base.atk, 3000), def: calc(base.def, 3000) };
-                sBase    = { hp: calc(base.hp, 5000), atk: calc(base.atk, 5000), def: calc(base.def, 5000) };
-            } else {
-                sRainbow = {hp:'---',atk:'---',def:'---'};
-                sFifty = sRainbow; sBase = sRainbow;
+                // ベース値は入力値そのもの
+                sBase = base;
+                
+                // 55%解放: 一律 +2000
+                sFifty = { 
+                    hp:  Number(base.hp) + 2000, 
+                    atk: Number(base.atk) + 2000, 
+                    def: Number(base.def) + 2000 
+                };
+
+                // 100%解放: 属性ごとの補正値を加算
+                // 補正値テーブル
+                const boosts = {
+                    'AGL': { hp: 4600, atk: 5000, def: 5400 },
+                    'TEQ': { hp: 4600, atk: 5400, def: 5000 },
+                    'INT': { hp: 5000, atk: 5000, def: 5000 },
+                    'STR': { hp: 5000, atk: 5400, def: 4600 },
+                    'PHY': { hp: 5400, atk: 5000, def: 4600 }
+                };
+
+                // キャラの属性を取得（未定義や想定外なら一律+5000などのフォールバックも検討可だが、基本はある前提）
+                const type = char.type || 'AGL'; 
+                const boost = boosts[type] || { hp: 5000, atk: 5000, def: 5000 };
+
+                sRainbow = {
+                    hp:  Number(base.hp) + boost.hp,
+                    atk: Number(base.atk) + boost.atk,
+                    def: Number(base.def) + boost.def
+                };
+
+            } else { 
+                sRainbow = {hp:'---',atk:'---',def:'---'}; sFifty = sRainbow; sBase = sRainbow; 
             }
         }
         let maxLv = 100;

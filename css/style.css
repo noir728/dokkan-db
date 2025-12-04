@@ -105,7 +105,7 @@ body {
 .passive-bullet { display: block; margin-bottom: 4px; padding-left: 12px; position: relative; }
 .passive-bullet::before { content: "・"; position: absolute; left: 0; color: #888; }
 .hl-num { color: var(--highlight); font-weight: bold; }
-.inline-skill-icon { display: inline-block; height: 16px; width: auto; vertical-align: sub; margin: 0 2px; }
+.inline-skill-icon { display: inline-block; height: 12px; width: auto; vertical-align: middle; margin: 0 2px; transform: translateY(-2px); }
 
 .passive-group { margin-bottom: 10px; }
 .passive-group:last-child { margin-bottom: 0; }
@@ -389,14 +389,12 @@ body {
 
 .scroll-container-x {
     display: flex;
-    align-items: center ; /* 上揃え */
-    gap: 8px; /* 間隔調整 */
+    align-items: flex-start; /* ★変更: 再び上揃えに戻す（個別に位置調整するため） */
+    gap: 4px; /* 間隔を少し詰める */
     overflow-x: auto;
-    padding-bottom: 5px; /* スクロールバー用の余白 */
-    padding-top: 0px; /* ★追加: 上に余白を追加して位置を下げる */
-
+    padding-bottom: 15px; 
+    padding-top: 10px;
     width: 100%;
-    /* スクロールバーをスタイリングしても良い */
 }
 
 /* キャラアイコン部分 */
@@ -427,26 +425,45 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    min-width: 40px;
+    justify-content: flex-start;
+    min-width: 30px; /* 少し狭く */
     flex-shrink: 0;
     margin-top: 0;
-    position: relative; /* 背景矢印の配置基準 */
+    position: relative;
     height: 100%;
     z-index: 0;
-    /* エフェクトがはみ出さないようにクリップ（必要に応じて） */
-    overflow: hidden; 
-    border-radius: 4px;
+}
+
+/* ★変更: 光のエフェクトや背景シェブロンは廃止 */
+.transition-area::before,
+.transition-area::after {
+    display: none;
 }
 /* メダル一覧コンテナ */
 .medals-req {
     display: flex;
-    gap: 6px;
-    margin-top: 0; /* マージン削除 */
-    flex-wrap: nowrap; /* ★重要: 折り返し禁止（横に並べる） */
+    gap: 8px; /* メダル間の隙間 */
+    margin-bottom: 0;
+    flex-wrap: nowrap;
     justify-content: center;
-    position: static ; /* z-index用 */
-    z-index: 1; /* 矢印より手前に表示 */
+    align-items: center; /* 矢印とメダルを垂直中央揃え */
+    position: relative;
+    z-index: 1;
+    
+    /* ★追加: 表示位置を下げる */
+    margin-top: 10px; 
+}
+
+/* ★追加: メダルの左右に「>>」を表示 */
+.medals-req::before,
+.medals-req::after {
+    content: ">>";
+    color: #7a7a7a; /* 暗めのグレー */
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: -2px; /* 文字間を詰めて記号っぽく */
+    margin: 0 4px; /* メダルとの間隔 */
+    font-family: monospace; /* 等幅フォントで形を整える */
 }
 
 /* 個別のメダルアイコン */
@@ -456,44 +473,12 @@ body {
     align-items: center;
     margin: 0;
     position: relative;
-    /* width は固定しない */
+    transform: scale(1.5); /* メダルを少し小さくして圧迫感を減らす */
 }
 
 /* 以前のテキスト矢印は非表示にする */
 .arrow-long {
     display: none;
-}
-
-/* ★変更: 記号の代わりに「光の流れるエフェクト」で流れを表現 */
-.transition-area::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    
-    /* 左から右へ流れる光のグラデーション */
-    background: linear-gradient(
-        90deg, 
-        transparent 0%, 
-        rgba(255, 255, 255, 0.0) 25%, 
-        rgba(255, 255, 255, 0.103) 50%, 
-        rgba(255, 255, 255, 0.0) 75%, 
-        transparent 100%
-    );
-    background-size: 200% 100%;
-    
-    /* アニメーション設定 */
-    animation: flowEffect 1.5s infinite linear;
-    
-    z-index: 2; /* メダルの上（オーバーレイ）に表示 */
-    pointer-events: none; /* タップ操作を透過させる */
-}
-
-@keyframes flowEffect {
-    0% { background-position: 200% 0; }
-    100% { background-position: -200% 0; }
 }
 
 /* --- メダルアイコン調整 (重ね合わせ対応) --- */
@@ -508,7 +493,7 @@ body {
 
 /* メダル画像 (前面) */
 .medal-img { 
-    width: 150%; height: 150%; 
+    width: 100%; height: 100%; 
     object-fit: cover; 
     position: relative; 
     z-index: 2; 
@@ -521,12 +506,14 @@ body {
     width: 100%; height: 100%;
     object-fit: contain;
     z-index: 1;
+    transform: scale(0.7); /* メダルを少し小さくして圧迫感を減らす */
+
 }
 /* ★修正: カウント表示の位置固定化 */
 .req-count { 
-    font-size: 10px; color: #ffd700; 
+    font-size: 7px; color: #ffd700; 
     background: rgba(0, 0, 0, 0.411); padding: 0px 4px; border-radius: 6px; border: 1px solid #555;
-    margin-top: 0px; /* 上に被せる */
+    margin-top: -5px; /* 上に被せる */
     position: static ;
     z-index: 10;
 }
