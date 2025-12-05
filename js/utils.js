@@ -149,5 +149,5 @@ function formatText(text) {
 
 function scrollToTop() { 
     const c = document.getElementById('main-content');
-    if(c) c.scrollTo({ top: 0, behavior: 'smooth' }); 
+    if(c) c.scrollTo({ top: 0, behavior: 'auto' }); 
 }

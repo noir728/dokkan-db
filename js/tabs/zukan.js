@@ -341,6 +341,11 @@ window.renderZukanLayout = function() {
         }
         // state.animDirection = ''; // リセット
     }
+
+    // ★追加: 戻ってきた場合はスクロール位置を復元
+    if (state.detailCharId === null && state.zukanScrollTop > 0) {
+        contentDiv.scrollTop = state.zukanScrollTop;
+    }
 };
 
 // ★修正: grid要素を引数でも受け取れるようにする（確実性向上）
@@ -532,55 +537,242 @@ function getSpecsHtml(specs) {
     return hasContent ? html : "";
 }
 
-// 相性キャラ計算 (修正: 覚醒ルートの最終形態のみ対象)
+function parseLinkStats(description, stats) {
+    if (!description) return;
+    
+    // 気力+X
+    const kiMatch = description.match(/気力\+(\d+)/);
+    if (kiMatch) stats.ki += parseInt(kiMatch[1], 10);
+
+    // ATKとDEF複合 (ATK,DEF / ATKとDEF / ATK&DEF)
+    // カンマ、"と"、"&" で区切られているケースに対応
+    const bothMatch = description.match(/(?:ATK|DEF)(?:,|と|&)(?:ATK|DEF)(\d+)%UP/);
+    if (bothMatch) {
+        const val = parseInt(bothMatch[1], 10);
+        stats.atk += val;
+        stats.def += val;
+    } else {
+        // 単独 ATK X%UP (複合マッチしなかった場合のみ)
+        const atkMatch = description.match(/ATK(\d+)%UP/);
+        if (atkMatch) stats.atk += parseInt(atkMatch[1], 10);
+        
+        // 単独 DEF X%UP
+        const defMatch = description.match(/DEF(\d+)%UP/);
+        if (defMatch) stats.def += parseInt(defMatch[1], 10);
+    }
+
+    // 敵のDEF X%DOWN
+    const defDownMatch = description.match(/敵(?:の)?DEF(\d+)%DOWN/);
+    if (defDownMatch) stats.def_down += parseInt(defDownMatch[1], 10);
+
+    // HP回復
+    const hpRecMatch = description.match(/HP(\d+)%回復/);
+    if (hpRecMatch) stats.hp_rec += parseInt(hpRecMatch[1], 10);
+
+    // 会心率
+    const critMatch = description.match(/会心(?:率)?(\d+)%UP/);
+    if (critMatch) stats.crit += parseInt(critMatch[1], 10);
+
+    // ダメージ軽減
+    const reduceMatch = description.match(/ダメージ軽減(?:率)?(\d+)%UP/) || description.match(/被ダメージを(\d+)%軽減/);
+    if (reduceMatch) stats.reduce += parseInt(reduceMatch[1], 10);
+
+    // 回避率
+    const dodgeMatch = description.match(/回避(?:率)?(\d+)%UP/);
+    if (dodgeMatch) stats.dodge += parseInt(dodgeMatch[1], 10);
+}
+
+// ★修正: 指定された形態(formType, formIndex)と相性比較する
+window.openLinkPartnerModal = function(partnerId, formType, formIndex) {
+    // 1. 現在表示中のメインキャラ情報を取得
+    const mainChar = DB.find(c => c.id === state.detailCharId);
+    if (!mainChar) return;
+
+    let targetForms = mainChar.forms;
+    if (state.detailEzaMode === 'eza' && mainChar.forms_eza) targetForms = mainChar.forms_eza;
+    if (state.detailEzaMode === 'seza' && mainChar.forms_seza) targetForms = mainChar.forms_seza;
+    
+    const mainForm = (targetForms && targetForms[state.detailFormIndex]) ? targetForms[state.detailFormIndex] : mainChar;
+    const mainLinks = new Set(mainForm.links || []);
+
+    // 2. パートナーキャラ情報を取得
+    const partnerChar = DB.find(c => c.id === partnerId);
+    if (!partnerChar) return;
+
+    // パートナーの対象形態を特定
+    let partnerForm = partnerChar; // Default to base
+    
+    if (formType && formIndex !== undefined && formIndex >= 0) {
+        if (formType === 'seza' && partnerChar.forms_seza && partnerChar.forms_seza[formIndex]) {
+            partnerForm = partnerChar.forms_seza[formIndex];
+        } else if (formType === 'eza' && partnerChar.forms_eza && partnerChar.forms_eza[formIndex]) {
+            partnerForm = partnerChar.forms_eza[formIndex];
+        } else if (formType === 'normal' && partnerChar.forms && partnerChar.forms[formIndex]) {
+            partnerForm = partnerChar.forms[formIndex];
+        }
+    }
+
+    // リンク一致確認
+    const partnerLinks = partnerForm.links || [];
+    const sharedLinks = partnerLinks.filter(l => mainLinks.has(l));
+
+    // 3. 効果の合計値を計算 (Lv10基準)
+    let totalStats = { 
+        ki: 0, atk: 0, def: 0, def_down: 0,
+        hp_rec: 0, crit: 0, reduce: 0, dodge: 0
+    };
+    let linksHtml = "";
+
+    sharedLinks.forEach(linkName => {
+        const linkData = LINKS[linkName] || { lv1: "---", lv10: "---" };
+        parseLinkStats(linkData.lv10, totalStats);
+
+        linksHtml += `
+            <div class="shared-link-item">
+                <div class="shared-link-name">${linkName}</div>
+                <div class="shared-link-effect">Lv10: ${formatText(linkData.lv10)}</div>
+            </div>
+        `;
+    });
+
+    // 4. モーダルHTMLの生成
+    const mainIconHtml = getCharIconHtml(mainChar, mainForm);
+    const partnerIconHtml = getCharIconHtml(partnerChar, partnerForm);
+
+    const modalHtml = `
+        <div id="link-partner-modal" class="modal-overlay open" style="z-index: 1100;">
+            <div class="filter-modal" style="height: 70vh; max-height: 600px;">
+                <div class="link-modal-content">
+                    <h2 style="font-size:14px; font-weight:bold; text-align:center; padding-bottom:10px; border-bottom:1px solid #333;">リンクスキル相性確認</h2>
+                    
+                    <div class="link-compare-row">
+                        <div class="compare-char">
+                            <div class="dokkan-icon" style="width:60px; height:60px; margin-bottom:4px;">${mainIconHtml}</div>
+                            <span style="font-size:10px; color:#aaa; text-align:center;">自身</span>
+                        </div>
+                        <div class="compare-arrow">⇔</div>
+                        <div class="compare-char" onclick="closeLinkModal(); openDetail(${partnerChar.id});" style="cursor:pointer;">
+                            <div class="dokkan-icon" style="width:60px; height:60px; margin-bottom:4px;">${partnerIconHtml}</div>
+                            <span style="font-size:10px; color:#ffd700; text-decoration:underline; text-align:center;">詳細へ</span>
+                        </div>
+                    </div>
+
+                    <div class="link-summary-box">
+                        <div class="summary-title">発動リンク合計効果 (Lv10)</div>
+                        <div class="summary-stats">
+                            ${totalStats.ki > 0 ? `<div class="stat-badge stat-ki">気力 +${totalStats.ki}</div>` : ''}
+                            ${totalStats.atk > 0 ? `<div class="stat-badge stat-atk">ATK +${totalStats.atk}%</div>` : ''}
+                            ${totalStats.def > 0 ? `<div class="stat-badge stat-def">DEF +${totalStats.def}%</div>` : ''}
+                            ${totalStats.hp_rec > 0 ? `<div class="stat-badge stat-def">HP ${totalStats.hp_rec}%回復</div>` : ''}
+                            ${totalStats.crit > 0 ? `<div class="stat-badge stat-atk">会心 +${totalStats.crit}%</div>` : ''}
+                            ${totalStats.reduce > 0 ? `<div class="stat-badge stat-def">軽減 +${totalStats.reduce}%</div>` : ''}
+                            ${totalStats.dodge > 0 ? `<div class="stat-badge stat-def">回避 +${totalStats.dodge}%</div>` : ''}
+                            ${totalStats.def_down > 0 ? `<div class="stat-badge stat-down">敵DEF -${totalStats.def_down}%</div>` : ''}
+                            
+                            ${(totalStats.ki===0 && totalStats.atk===0 && totalStats.def===0 && totalStats.def_down===0 && totalStats.hp_rec===0 && totalStats.crit===0 && totalStats.reduce===0 && totalStats.dodge===0) ? '<span style="font-size:11px;color:#666;">ステータス変動なし</span>' : ''}
+                        </div>
+                    </div>
+
+                    <div class="link-detail-list">
+                        <div style="font-size:11px; color:#888; margin-bottom:6px;">共通リンク (${sharedLinks.length}個)</div>
+                        ${linksHtml}
+                    </div>
+
+                    <div style="padding:10px; border-top:1px solid #333;">
+                        <button class="btn-reset" onclick="closeLinkModal()" style="width:100%; padding:10px;">閉じる</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    const existing = document.getElementById('link-partner-modal');
+    if (existing) existing.remove();
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+};
+
+window.closeLinkModal = function() {
+    const modal = document.getElementById('link-partner-modal');
+    if (modal) modal.remove();
+};
+
+
+// ★修正: 自身の形態変化も含める (同名・ビジュアルチェンジは除外)
 function calcPartners(targetChar, currentForm) {
     if (!currentForm.links || currentForm.links.length === 0) return [];
     const targetLinks = new Set(currentForm.links);
     const results = [];
     const myLinkCount = currentForm.links.length;
 
-    DB.forEach(char => {
-        // 自分自身は除外
-        if (char.id === targetChar.id) return;
+    // 比較元の名前を解決 (同名リンク不可の判定用)
+    const targetName = currentForm.name || targetChar.name;
 
-        // ★追加: 覚醒ルートの最終形態（一番右）チェック
-        // awakeningデータがあり、かつIDを持つステップが存在する場合
+    DB.forEach(char => {
+        // ※自身(ID一致)の除外コードを削除
+        
+        // 覚醒前キャラを除外 (最終段階のみ対象)
         if (char.awakening && char.awakening.length > 0) {
-            // IDが定義されているステップのみを抽出
             const stepsWithId = char.awakening.filter(step => step.id !== undefined && step.id !== null);
-            
             if (stepsWithId.length > 0) {
-                // 配列の最後（一番右）のIDを取得
                 const lastStepId = stepsWithId[stepsWithId.length - 1].id;
-                
-                // 現在のキャラIDが最終IDと異なる場合は、途中形態なのでスキップ
-                // (例: URのID != LRのID ならURはスキップ)
-                if (char.id !== lastStepId) {
-                    return; 
-                }
+                if (char.id !== lastStepId) return; 
             }
         }
 
-        let maxMatch = 0;
-        const check = (links) => {
-            if (!links) return;
-            const m = links.filter(l => targetLinks.has(l)).length;
-            if (m > maxMatch) maxMatch = m;
-        };
-        check(char.links);
-        if (char.forms) char.forms.forEach(f => check(f.links));
-        if (char.forms_eza) char.forms_eza.forEach(f => check(f.links));
-        if (char.forms_seza) char.forms_seza.forEach(f => check(f.links));
+        // チェック用内部関数
+        const checkAndPush = (formObj, fType, fIdx) => {
+            if (!formObj.links) return;
 
-        if (maxMatch >= 3) {
-            results.push({
-                char: char, 
-                match: maxMatch,
-                isFull: (maxMatch === myLinkCount) || (maxMatch >= 7)
+            // 除外条件1: 「ビジュアルチェンジ」形態
+            if (formObj.label === 'ビジュアルチェンジ' || formObj.name === 'ビジュアルチェンジ') return;
+
+            // 除外条件2: 名前が完全に一致する場合 (同名キャラとはリンクしない仕様)
+            // これにより、自分自身の同じ形態や、名前が変わらない変身前後は除外されます
+            const candidateName = formObj.name || char.name;
+            if (candidateName === targetName) return;
+
+            const m = formObj.links.filter(l => targetLinks.has(l)).length;
+            if (m >= 3) {
+                results.push({
+                    char: char,
+                    targetForm: formObj, // 表示用データ
+                    match: m,
+                    isFull: (m === myLinkCount) || (m >= 7),
+                    formType: fType, // モーダル復元用: 'base' | 'normal' | 'eza' | 'seza'
+                    formIndex: fIdx  // モーダル復元用: index
+                });
+            }
+        };
+
+        // 1. ベース形態 (変身前)
+        checkAndPush(char, 'base', -1);
+
+        // 2. 変身形態 (変身後)
+        // ※「最新の強化状態」の変身形態を使用する (SEZA > EZA > 通常)
+        if (char.forms) {
+            char.forms.forEach((form, idx) => {
+                let targetF = form;
+                let type = 'normal';
+
+                if (char.forms_seza && char.forms_seza[idx]) {
+                    targetF = char.forms_seza[idx];
+                    type = 'seza';
+                } else if (char.forms_eza && char.forms_eza[idx]) {
+                    targetF = char.forms_eza[idx];
+                    type = 'eza';
+                }
+                
+                checkAndPush(targetF, type, idx);
             });
         }
     });
-    results.sort((a, b) => b.match - a.match);
+
+    // ソート: 一致数降順 -> ID昇順
+    results.sort((a, b) => {
+        if (b.match !== a.match) return b.match - a.match;
+        return a.char.id - b.char.id;
+    });
+
     return results.slice(0, 15);
 }
 
@@ -652,6 +844,8 @@ function openDetail(id) {
     state.detailCharId = id;
     state.detailFormIndex = 0;
     state.detailEzaMode = 'normal';
+    state.animDirection = 'right';
+
     
     // ★アニメーション方向設定
     state.animDirection = 'right'; // 右からイン
@@ -1149,32 +1343,22 @@ function renderCharacterDetail(id) {
         body.innerHTML += linkHtml;
     }
     
-    // ▼▼▼ 相性キャラ自動表示 (修正: アイコン化 + フルリンク表示) ▼▼▼
+    // ★修正: パートナー表示 (bestFormではなく、targetFormを渡してアイコンを変身後にする)
     const partners = calcPartners(char, currentData);
     if (partners.length > 0) {
         let partnersHtml = '';
         partners.forEach(p => {
-            // p.char がキャラデータ本体、p.match が一致数
-            const iconHtml = getCharIconHtml(p.char); // 既存の関数でリッチなアイコンを生成
-            
+            // ★変更: 第2引数にターゲット形態を渡す
+            const iconHtml = getCharIconHtml(p.char, p.targetForm); 
             let labelHtml = `リンク: ${p.match}`;
             let badgeClass = "link-match-badge";
-            
-            if (p.isFull) {
-                labelHtml = "フルリンク";
-                badgeClass += " full-link";
-            }
-
-            partnersHtml += `
-                <div class="scroll-item-wrapper" onclick="openDetail(${p.char.id})">
-                    <div class="scroll-icon-box">${iconHtml}</div>
-                    <div class="scroll-item-info">
-                        <span class="${badgeClass}">${labelHtml}</span>
-                    </div>
-                </div>`;
+            if (p.isFull) { labelHtml = "フルリンク"; badgeClass += " full-link"; }
+            // モーダルオープン時に形態識別子(formType, formIndex)を渡す
+            partnersHtml += `<div class="scroll-item-wrapper" onclick="openLinkPartnerModal(${p.char.id}, '${p.formType}', ${p.formIndex})"><div class="scroll-icon-box">${iconHtml}</div><div class="scroll-item-info"><span class="${badgeClass}">${labelHtml}</span></div></div>`;
         });
         body.innerHTML += `<div class="section-title">相性の良いキャラ</div><div class="partner-scroll">${partnersHtml}</div>`;
     }
+
 
     // ★修正: 技上げ素材 (確率表記削除 & SSRのみ & ガシャ産ラベル削除)
     const farmResult = calcFarmCards(char);
