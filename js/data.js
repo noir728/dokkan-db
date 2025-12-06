@@ -1676,7 +1676,7 @@ const CHARACTER_DATA = [
         ],
         "leaderSkill": "全属性の気力+3、ATK3000UP",
         "leaderSkill_eza": "全属性の気力+3、HPとATKとDEF77%UP",
-        "leaderSkill_seza": "",
+        "leaderSkill_seza": "全属性の気力+3、HPとATKとDEF77%UP",
         "awakening": [
             {
                 "rank": "SSR",
@@ -1976,7 +1976,7 @@ const CHARACTER_DATA = [
             "地球育ちの戦士",
             "地球を守りし英雄"
         ],
-        "leaderSkill": "超力属性の気力+2、HPとATKとDEF100%UP &極力属性のHPとATKとDEF40%UP",
+        "leaderSkill": "超力属性の気力+2、HPとATKとDEF100%UP\n&極力属性のHPとATKとDEF40%UP",
         "leaderSkill_eza": "",
         "leaderSkill_seza": "",
         "awakening": [
@@ -2106,10 +2106,25 @@ const CHARACTER_DATA = [
         "seza": "2025/07/29",
         "source_type": "gasha",
         "drop_event": "",
-        "categories": [],
-        "leaderSkill": "超力属性の気力+3、HPとATKとDEF120%UP &極力属性の気力+1、HPとATKとDEF50%UP",
-        "leaderSkill_eza": "超力属性の気力+3、HPとATKとDEF130%UP &極力属性の気力+3、HPとATKとDEF90%UP",
-        "leaderSkill_seza": "超力属性の気力+3、HPとATKとDEF130%UP &極力属性の気力+3、HPとATKとDEF90%UP",
+        "categories": [
+            "純粋サイヤ人",
+            "孫悟空の系譜",
+            "かめはめ波",
+            "大猿パワー",
+            "亀仙流",
+            "奇跡の覚醒",
+            "GT HERO",
+            "親友の絆",
+            "高速戦闘",
+            "命運をかけた戦い",
+            "超サイヤ人を超えた力",
+            "親子の絆",
+            "地球育ちの戦士",
+            "地球を守りし英雄"
+        ],
+        "leaderSkill": "超力属性の気力+3、HPとATKとDEF120%UP\n&極力属性の気力+1、HPとATKとDEF50%UP",
+        "leaderSkill_eza": "超力属性の気力+3、HPとATKとDEF130%UP\n&極力属性の気力+3、HPとATKとDEF90%UP",
+        "leaderSkill_seza": "超力属性の気力+3、HPとATKとDEF130%UP\n&極力属性の気力+3、HPとATKとDEF90%UP",
         "awakening": [
             {
                 "rank": "SSR",
@@ -2259,7 +2274,7 @@ const CHARACTER_DATA = [
                         "maxLv": 15,
                         "type": "気弾",
                         "name": "10倍かめはめ波(極限)",
-                        "effect": "1ターンATKが大幅上昇し、相手に超絶特大ダメージを与え、DEFを大幅に低下させる &6ターンDEFが30%上昇"
+                        "effect": "1ターンATKが大幅上昇し、相手に超絶特大ダメージを与え、DEFを大幅に低下させる\n&6ターンDEFが30%上昇"
                     }
                 ],
                 "passive": {
@@ -2329,7 +2344,7 @@ const CHARACTER_DATA = [
                         "maxLv": 15,
                         "type": "気弾",
                         "name": "10倍かめはめ波(極限)",
-                        "effect": "1ターンATKが大幅上昇し、相手に超絶特大ダメージを与え、DEFを大幅に低下させる &6ターンDEFが30%上昇"
+                        "effect": "1ターンATKが大幅上昇し、相手に超絶特大ダメージを与え、DEFを大幅に低下させる\n&6ターンDEFが30%上昇"
                     }
                 ],
                 "passive": {
@@ -2399,8 +2414,23 @@ const CHARACTER_DATA = [
         "release": "2017/02/01",
         "source_type": "gasha",
         "drop_event": "",
-        "categories": [],
-        "leaderSkill": "超速属性の気力+2、HPとATKとDEF100%UP &極速属性のHPとATKとDEF40%UP",
+        "categories": [
+            "邪悪龍編",
+            "純粋サイヤ人",
+            "ベジータの系譜",
+            "好敵手",
+            "救世主",
+            "大猿パワー",
+            "奇跡の覚醒",
+            "天才戦士",
+            "GT HERO",
+            "命運をかけた戦い",
+            "超サイヤ人を超えた力",
+            "親子の絆",
+            "地球を守りし英雄",
+            "継承する者"
+        ],
+        "leaderSkill": "超速属性の気力+2、HPとATKとDEF100%UP\n&極速属性のHPとATKとDEF40%UP",
         "leaderSkill_eza": "",
         "leaderSkill_seza": "",
         "awakening": [
@@ -2530,10 +2560,25 @@ const CHARACTER_DATA = [
         "seza": "2025/07/29",
         "source_type": "gasha",
         "drop_event": "",
-        "categories": [],
-        "leaderSkill": "超速属性の気力+3、HPとATKとDEF120%UP &極速属性の気力+1、HPとATKとDEF50%UP",
-        "leaderSkill_eza": "超速属性の気力+3、HPとATKとDEF130%UP &極速属性の気力+3、HPとATKとDEF90%UP",
-        "leaderSkill_seza": "超速属性の気力+3、HPとATKとDEF130%UP &極速属性の気力+3、HPとATKとDEF90%UP",
+        "categories": [
+            "邪悪龍編",
+            "純粋サイヤ人",
+            "ベジータの系譜",
+            "好敵手",
+            "救世主",
+            "大猿パワー",
+            "奇跡の覚醒",
+            "天才戦士",
+            "GT HERO",
+            "命運をかけた戦い",
+            "超サイヤ人を超えた力",
+            "親子の絆",
+            "地球を守りし英雄",
+            "継承する者"
+        ],
+        "leaderSkill": "超速属性の気力+3、HPとATKとDEF120%UP\n&極速属性の気力+1、HPとATKとDEF50%UP",
+        "leaderSkill_eza": "超速属性の気力+3、HPとATKとDEF130%UP\n&極速属性の気力+3、HPとATKとDEF90%UP",
+        "leaderSkill_seza": "超速属性の気力+3、HPとATKとDEF130%UP\n&極速属性の気力+3、HPとATKとDEF90%UP",
         "awakening": [
             {
                 "rank": "SSR",
@@ -2683,7 +2728,7 @@ const CHARACTER_DATA = [
                         "maxLv": 15,
                         "type": "気弾",
                         "name": "ファイナルシャインアタック(極限)",
-                        "effect": "1ターンDEFが大幅上昇し、相手に超絶特大ダメージを与え、DEFを大幅に低下させる &6ターンATKが30%上昇"
+                        "effect": "1ターンDEFが大幅上昇し、相手に超絶特大ダメージを与え、DEFを大幅に低下させる\n&6ターンATKが30%上昇"
                     }
                 ],
                 "passive": {
@@ -2753,7 +2798,7 @@ const CHARACTER_DATA = [
                         "maxLv": 15,
                         "type": "気弾",
                         "name": "ファイナルシャインアタック(極限)",
-                        "effect": "1ターンDEFが大幅上昇し、相手に超絶特大ダメージを与え、DEFを大幅に低下させる &6ターンATKが30%上昇"
+                        "effect": "1ターンDEFが大幅上昇し、相手に超絶特大ダメージを与え、DEFを大幅に低下させる\n&6ターンATKが30%上昇"
                     }
                 ],
                 "passive": {
@@ -3081,9 +3126,9 @@ const CHARACTER_DATA = [
             "融合/合体戦士",
             "親子の絆"
         ],
-        "leaderSkill": "「ポタラ」カテゴリの 気力+3、HPとATK170%UP、DEF130%UP または知属性の気力+3、HPとATKとDEF90%UP",
-        "leaderSkill_eza": "「ポタラ」カテゴリの 気力+3、HPとATKとDEF180%UP または知属性の気力+3、HPとATKとDEF120%UP",
-        "leaderSkill_seza": "「ポタラ」カテゴリの 気力+3、HPとATKとDEF180%UP または知属性の気力+3、HPとATKとDEF120%UP",
+        "leaderSkill": "「ポタラ」カテゴリの\n気力+3、HPとATK170%UP、DEF130%UP\nまたは知属性の気力+3、HPとATKとDEF90%UP",
+        "leaderSkill_eza": "「ポタラ」カテゴリの\n気力+3、HPとATKとDEF180%UP\nまたは知属性の気力+3、HPとATKとDEF120%UP",
+        "leaderSkill_seza": "",
         "awakening": [
             {
                 "rank": "SSR",
@@ -3239,7 +3284,7 @@ const CHARACTER_DATA = [
                         "maxLv": 20,
                         "type": "気弾",
                         "name": "ファイナルかめはめ波",
-                        "effect": "相手に超極大ダメージを与える&1ターン仲間ATK30%UP"
+                        "effect": "相手に超極大ダメージを与える\n&1ターン仲間ATK30%UP"
                     }
                 ],
                 "passive": {
@@ -3382,7 +3427,7 @@ const CHARACTER_DATA = [
                         "maxLv": 25,
                         "type": "気弾",
                         "name": "ファイナルかめはめ波(極限)",
-                        "effect": "1ターンDEFが大幅上昇し、相手に超極大ダメージを与える&1ターン仲間ATK30%UP"
+                        "effect": "1ターンDEFが大幅上昇し、相手に超極大ダメージを与える\n&1ターン仲間ATK30%UP"
                     }
                 ],
                 "passive": {
@@ -3683,9 +3728,24 @@ const CHARACTER_DATA = [
         "eza": "2022/02/22",
         "source_type": "gasha",
         "drop_event": "",
-        "categories": [],
-        "leaderSkill": "「フュージョン」カテゴリの 気力+3、HPとATK170%UP、DEF130%UP または体属性の気力+3、HPとATKとDEF90%UP",
-        "leaderSkill_eza": "「フュージョン」カテゴリの 気力+3、HPとATKとDEF180%UP または体属性の気力+3、HPとATKとDEF120%UP",
+        "categories": [
+            "フュージョン",
+            "コンビネーション",
+            "劇場版HERO",
+            "超サイヤ人",
+            "かめはめ波",
+            "あの世の戦士",
+            "最後の切り札",
+            "純粋サイヤ人",
+            "つながる希望",
+            "再起する力",
+            "時間制限",
+            "融合/合体戦士",
+            "親子の絆",
+            "地球を守りし英雄"
+        ],
+        "leaderSkill": "「フュージョン」カテゴリの\n気力+3、HPとATK170%UP、DEF130%UP\nまたは体属性の気力+3、HPとATKとDEF90%UP",
+        "leaderSkill_eza": "「フュージョン」カテゴリの\n気力+3、HPとATKとDEF180%UP\nまたは体属性の気力+3、HPとATKとDEF120%UP",
         "leaderSkill_seza": "",
         "awakening": [
             {
@@ -4047,7 +4107,7 @@ const CHARACTER_DATA = [
             "地球育ちの戦士",
             "地球を守りし英雄"
         ],
-        "leaderSkill": "「孫悟空の系譜」カテゴリの 気力+2、HPとATK130%UP、DEF100%UP、 または超速属性の気力+2、HPとATKとDEF100%UP",
+        "leaderSkill": "「孫悟空の系譜」カテゴリの\n気力+2、HPとATK130%UP、DEF100%UP、\nまたは超速属性の気力+2、HPとATKとDEF100%UP",
         "leaderSkill_eza": "",
         "leaderSkill_seza": "",
         "awakening": [
@@ -4191,7 +4251,7 @@ const CHARACTER_DATA = [
             "地球育ちの戦士",
             "地球を守りし英雄"
         ],
-        "leaderSkill": "「孫悟空の系譜」カテゴリの 気力+3、HPとATK150%UP、DEF110%UP、 または超速属性の気力+2、HPとATKとDEF110%UP",
+        "leaderSkill": "「孫悟空の系譜」カテゴリの\n気力+3、HPとATK150%UP、DEF110%UP、\nまたは超速属性の気力+2、HPとATKとDEF110%UP",
         "leaderSkill_eza": "",
         "leaderSkill_seza": "",
         "awakening": [
@@ -4338,8 +4398,8 @@ const CHARACTER_DATA = [
             "地球育ちの戦士",
             "地球を守りし英雄"
         ],
-        "leaderSkill": "「孫悟空の系譜」カテゴリの 気力+3、HPとATK170%UP、DEF130%UP、 または超速属性の気力+3、HPとATKとDEF120%UP",
-        "leaderSkill_eza": "「孫悟空の系譜」カテゴリの 気力+3、HPとATKとDEF180%UP、 または超速属性の気力+3、HPとATKとDEF130%UP",
+        "leaderSkill": "「孫悟空の系譜」カテゴリの\n気力+3、HPとATK170%UP、DEF130%UP、\nまたは超速属性の気力+3、HPとATKとDEF120%UP",
+        "leaderSkill_eza": "「孫悟空の系譜」カテゴリの\n気力+3、HPとATKとDEF180%UP、\nまたは超速属性の気力+3、HPとATKとDEF130%UP",
         "leaderSkill_seza": "",
         "awakening": [
             {
@@ -4586,7 +4646,7 @@ const CHARACTER_DATA = [
             "地球を守りし英雄",
             "継承する者"
         ],
-        "leaderSkill": "「ベジータの系譜」カテゴリの 気力+2、HP100%UP、ATKとDEF130%UP、 または超力属性の気力+2、HPとATKとDEF100%UP",
+        "leaderSkill": "「ベジータの系譜」カテゴリの\n気力+2、HP100%UP、ATKとDEF130%UP、\nまたは超力属性の気力+2、HPとATKとDEF100%UP",
         "leaderSkill_eza": "",
         "leaderSkill_seza": "",
         "awakening": [
@@ -4731,7 +4791,7 @@ const CHARACTER_DATA = [
             "地球を守りし英雄",
             "継承する者"
         ],
-        "leaderSkill": "「ベジータの系譜」カテゴリの 気力+3、HP110%UP、ATKとDEF150%UP、 または超力属性の気力+2、HPとATKとDEF110%UP",
+        "leaderSkill": "「ベジータの系譜」カテゴリの\n気力+3、HP110%UP、ATKとDEF150%UP、\nまたは超力属性の気力+2、HPとATKとDEF110%UP",
         "leaderSkill_eza": "",
         "leaderSkill_seza": "",
         "awakening": [
@@ -4878,8 +4938,8 @@ const CHARACTER_DATA = [
             "地球を守りし英雄",
             "継承する者"
         ],
-        "leaderSkill": "「ベジータの系譜」カテゴリの 気力+3、HP130%UP、ATKとDEF170%UP、 または超力属性の気力+3、HPとATKとDEF120%UP",
-        "leaderSkill_eza": "",
+        "leaderSkill": "「ベジータの系譜」カテゴリの\n気力+3、HP130%UP、ATKとDEF170%UP、\nまたは超力属性の気力+3、HPとATKとDEF120%UP",
+        "leaderSkill_eza": "「ベジータの系譜」カテゴリの 気力+3、HPとATKとDEF180%UP、\nまたは超力属性の気力+3、HPとATKとDEF130%UP",
         "leaderSkill_seza": "",
         "awakening": [
             {
@@ -5122,7 +5182,7 @@ const CHARACTER_DATA = [
             "地球を守りし英雄",
             "高速戦闘"
         ],
-        "leaderSkill": "「最後の切り札」または「フュージョン」カテゴリの気力+2、HPとATKとDEF100%UP",
+        "leaderSkill": "「最後の切り札」または「フュージョン」カテゴリの\n気力+2、HPとATKとDEF100%UP",
         "leaderSkill_eza": "",
         "leaderSkill_seza": "",
         "awakening": [
@@ -5256,7 +5316,7 @@ const CHARACTER_DATA = [
             "地球を守りし英雄",
             "高速戦闘"
         ],
-        "leaderSkill": "「最後の切り札」または「フュージョン」カテゴリの気力+3、HPとATKとDEF120%UP",
+        "leaderSkill": "「最後の切り札」または「フュージョン」カテゴリの\n気力+3、HPとATKとDEF120%UP",
         "leaderSkill_eza": "",
         "leaderSkill_seza": "",
         "awakening": [
@@ -5395,8 +5455,8 @@ const CHARACTER_DATA = [
             "地球を守りし英雄",
             "高速戦闘"
         ],
-        "leaderSkill": "「最後の切り札」または「フュージョン」カテゴリの気力+3、HPとATKとDEF150%UP",
-        "leaderSkill_eza": "「最後の切り札」または「フュージョン」カテゴリの気力+3、HPとATKとDEF170%UP",
+        "leaderSkill": "「最後の切り札」または「フュージョン」カテゴリの\n気力+3、HPとATKとDEF150%UP",
+        "leaderSkill_eza": "「最後の切り札」または「フュージョン」カテゴリの\n気力+3、HPとATKとDEF170%UP",
         "leaderSkill_seza": "",
         "awakening": [
             {
@@ -5829,7 +5889,7 @@ const CHARACTER_DATA = [
             "融合/合体戦士",
             "超HERO"
         ],
-        "leaderSkill": "「最後の切り札」または「ポタラ」カテゴリの気力+2、HPとATKとDEF100%UP",
+        "leaderSkill": "「最後の切り札」または「ポタラ」カテゴリの\n気力+2、HPとATKとDEF100%UP",
         "leaderSkill_eza": "",
         "leaderSkill_seza": "",
         "awakening": [
@@ -5963,7 +6023,7 @@ const CHARACTER_DATA = [
             "融合/合体戦士",
             "超HERO"
         ],
-        "leaderSkill": "「最後の切り札」または「ポタラ」カテゴリの気力+3、HPとATKとDEF120%UP",
+        "leaderSkill": "「最後の切り札」または「ポタラ」カテゴリの\n気力+3、HPとATKとDEF120%UP",
         "leaderSkill_eza": "",
         "leaderSkill_seza": "",
         "awakening": [
@@ -6105,8 +6165,8 @@ const CHARACTER_DATA = [
             "超サイヤ人を超えた力",
             "超HERO"
         ],
-        "leaderSkill": "「最後の切り札」または「ポタラ」カテゴリの気力+3、HPとATKとDEF150%UP",
-        "leaderSkill_eza": "「最後の切り札」または「ポタラ」カテゴリの気力+3、HPとATKとDEF170%UP",
+        "leaderSkill": "「最後の切り札」または「ポタラ」カテゴリの\n気力+3、HPとATKとDEF150%UP",
+        "leaderSkill_eza": "「最後の切り札」または「ポタラ」カテゴリの\n気力+3、HPとATKとDEF170%UP",
         "leaderSkill_seza": "",
         "awakening": [
             {
@@ -6548,7 +6608,7 @@ const CHARACTER_DATA = [
             "超HERO",
             "大会出場者"
         ],
-        "leaderSkill": "「奇跡の覚醒」または「第7宇宙代表」カテゴリの気力+2、HPとATKとDEF130%UP",
+        "leaderSkill": "「奇跡の覚醒」または「第7宇宙代表」カテゴリの\n気力+2、HPとATKとDEF130%UP",
         "leaderSkill_eza": "",
         "leaderSkill_seza": "",
         "awakening": [
@@ -6689,7 +6749,7 @@ const CHARACTER_DATA = [
             "超HERO",
             "大会出場者"
         ],
-        "leaderSkill": "「奇跡の覚醒」または「第7宇宙代表」カテゴリの気力+3、HPとATKとDEF150%UP",
+        "leaderSkill": "「奇跡の覚醒」または「第7宇宙代表」カテゴリの\n気力+3、HPとATKとDEF150%UP",
         "leaderSkill_eza": "",
         "leaderSkill_seza": "",
         "awakening": [
@@ -6839,8 +6899,8 @@ const CHARACTER_DATA = [
             "超HERO",
             "大会出場者"
         ],
-        "leaderSkill": "「奇跡の覚醒」または「第7宇宙代表」カテゴリの気力+3、HPとATKとDEF170%UP",
-        "leaderSkill_eza": "「奇跡の覚醒」または「第7宇宙代表」カテゴリの気力+3、HPとATKとDEF180%UP",
+        "leaderSkill": "「奇跡の覚醒」または「第7宇宙代表」カテゴリの\n気力+3、HPとATKとDEF170%UP",
+        "leaderSkill_eza": "「奇跡の覚醒」または「第7宇宙代表」カテゴリの\n気力+3、HPとATKとDEF180%UP",
         "leaderSkill_seza": "",
         "awakening": [
             {
@@ -6989,14 +7049,14 @@ const CHARACTER_DATA = [
                         "maxLv": 25,
                         "type": "格闘",
                         "name": "完全なる極意(極限)",
-                        "effect": "1ターンATKが大幅上昇し、相手に極大ダメージを与え、1ターン高確率で会心が発動 &1ターン仲間の会心率7%UP"
+                        "effect": "1ターンATKが大幅上昇し、相手に極大ダメージを与え、1ターン高確率で会心が発動\n&1ターン仲間の会心率7%UP"
                     },
                     {
                         "ki": "18~",
                         "maxLv": 25,
                         "type": "気弾",
                         "name": "超極限かめはめ波(極限)",
-                        "effect": "1ターンATKが超大幅上昇し、相手に超極大ダメージを与え、1ターン高確率で会心が発動 &2ターン仲間の会心率7%UP"
+                        "effect": "1ターンATKが超大幅上昇し、相手に超極大ダメージを与え、1ターン高確率で会心が発動\n&2ターン仲間の会心率7%UP"
                     }
                 ],
                 "passive": {
@@ -7106,7 +7166,7 @@ const CHARACTER_DATA = [
             "大会出場者",
             "継承する者"
         ],
-        "leaderSkill": "「再起する力」または「第7宇宙代表」カテゴリの気力+2、HPとATKとDEF130%UP",
+        "leaderSkill": "「再起する力」または「第7宇宙代表」カテゴリの\n気力+2、HPとATKとDEF130%UP",
         "leaderSkill_eza": "",
         "leaderSkill_seza": "",
         "awakening": [
@@ -7253,7 +7313,7 @@ const CHARACTER_DATA = [
             "大会出場者",
             "継承する者"
         ],
-        "leaderSkill": "「再起する力」または「第7宇宙代表」カテゴリの気力+3、HPとATKとDEF150%UP",
+        "leaderSkill": "「再起する力」または「第7宇宙代表」カテゴリの\n気力+3、HPとATKとDEF150%UP",
         "leaderSkill_eza": "",
         "leaderSkill_seza": "",
         "awakening": [
@@ -7408,8 +7468,8 @@ const CHARACTER_DATA = [
             "大会出場者",
             "継承する者"
         ],
-        "leaderSkill": "「再起する力」または「第7宇宙代表」カテゴリの気力+3、HPとATKとDEF170%UP",
-        "leaderSkill_eza": "「再起する力」または「第7宇宙代表」カテゴリの気力+3、HPとATKとDEF180%UP",
+        "leaderSkill": "「再起する力」または「第7宇宙代表」カテゴリの\n気力+3、HPとATKとDEF170%UP",
+        "leaderSkill_eza": "「再起する力」または「第7宇宙代表」カテゴリの\n気力+3、HPとATKとDEF180%UP",
         "leaderSkill_seza": "",
         "awakening": [
             {
@@ -7676,14 +7736,14 @@ const CHARACTER_DATA = [
                         "maxLv": 25,
                         "type": "格闘",
                         "name": "戦闘民族の誇り(極限)",
-                        "effect": "1ターンDEFが大幅上昇し、相手に極大ダメージを与え、1ターン高確率で会心が発動 &1ターン仲間の会心率7%UP"
+                        "effect": "1ターンDEFが大幅上昇し、相手に極大ダメージを与え、1ターン高確率で会心が発動\n&1ターン仲間の会心率7%UP"
                     },
                     {
                         "ki": "18~",
                         "maxLv": 25,
                         "type": "気弾",
                         "name": "ファイナルフラッシュ(極限)",
-                        "effect": "1ターンATKとDEFが大幅上昇し、相手に超極大ダメージを与え、1ターン高確率で会心が発動 &2ターン仲間の会心率7%UP"
+                        "effect": "1ターンATKとDEFが大幅上昇し、相手に超極大ダメージを与え、1ターン高確率で会心が発動\n&2ターン仲間の会心率7%UP"
                     }
                 ],
                 "passive": {
@@ -7795,14 +7855,14 @@ const CHARACTER_DATA = [
                         "maxLv": 25,
                         "type": "格闘",
                         "name": "戦闘民族の誇り(極限)",
-                        "effect": "1ターンDEFが大幅上昇し、相手に極大ダメージを与え、1ターン高確率で会心が発動 &1ターン仲間の会心率7%UP"
+                        "effect": "1ターンDEFが大幅上昇し、相手に極大ダメージを与え、1ターン高確率で会心が発動\n&1ターン仲間の会心率7%UP"
                     },
                     {
                         "ki": "18~",
                         "maxLv": 25,
                         "type": "気弾",
                         "name": "ファイナルフラッシュ(極限)",
-                        "effect": "1ターンATKとDEFが大幅上昇し、相手に超極大ダメージを与え、1ターン高確率で会心が発動 &2ターン仲間の会心率7%UP"
+                        "effect": "1ターンATKとDEFが大幅上昇し、相手に超極大ダメージを与え、1ターン高確率で会心が発動\n&2ターン仲間の会心率7%UP"
                     }
                 ],
                 "passive": {
@@ -7901,7 +7961,7 @@ const CHARACTER_DATA = [
             "親子の絆",
             "超HERO"
         ],
-        "leaderSkill": "「超サイヤ人を超えた力」または「劇場版HERO」 カテゴリの気力+2、HPとATKとDEF130%UP、「かめはめ波」カテゴリを含む場合は 更にHPとATKとDEF10%UP",
+        "leaderSkill": "「超サイヤ人を超えた力」または「劇場版HERO」 カテゴリの\n気力+2、HPとATKとDEF130%UP、\n「かめはめ波」カテゴリを含む場合は\n更にHPとATKとDEF10%UP",
         "leaderSkill_eza": "",
         "leaderSkill_seza": "",
         "awakening": [
@@ -8029,7 +8089,7 @@ const CHARACTER_DATA = [
             "親子の絆",
             "超HERO"
         ],
-        "leaderSkill": "「超サイヤ人を超えた力」または「劇場版HERO」 カテゴリの気力+3、HPとATKとDEF150%UP、「かめはめ波」カテゴリを含む場合は 更にHPとATKとDEF20%UP",
+        "leaderSkill": "「超サイヤ人を超えた力」または「劇場版HERO」 カテゴリの\n気力+3、HPとATKとDEF150%UP、\n「かめはめ波」カテゴリを含む場合は\n更にHPとATKとDEF20%UP",
         "leaderSkill_eza": "",
         "leaderSkill_seza": "",
         "awakening": [
@@ -8167,8 +8227,8 @@ const CHARACTER_DATA = [
             "超HERO",
             "地球を守りし英雄"
         ],
-        "leaderSkill": "「超サイヤ人を超えた力」または「劇場版HERO」カテゴリの気力+3、HPとATKとDEF170%UP、「かめはめ波」カテゴリを含む場合は更にHPとATKとDEF30%UP",
-        "leaderSkill_eza": "「超サイヤ人を超えた力」または「劇場版HERO」カテゴリの気力+3、HPとATKとDEF170%UP、「かめはめ波」カテゴリを含む場合は更に気力+1、HPとATKとDEF30%UP",
+        "leaderSkill": "「超サイヤ人を超えた力」または「劇場版HERO」カテゴリの\n気力+3、HPとATKとDEF170%UP、\n「かめはめ波」カテゴリを含む場合は\n更にHPとATKとDEF30%UP",
+        "leaderSkill_eza": "「超サイヤ人を超えた力」または「劇場版HERO」カテゴリの\n気力+3、HPとATKとDEF170%UP、\n「かめはめ波」カテゴリを含む場合は\n更に気力+1、HPとATKとDEF30%UP",
         "leaderSkill_seza": "",
         "awakening": [
             {
@@ -8266,7 +8326,7 @@ const CHARACTER_DATA = [
                     "name": "ダブル超サイヤ人ゴッド",
                     "intro": {
                         "condition": "自身の登場時、登場時演出が発動",
-                        "effect": "[img:one_time]1ターンの間、全ての攻撃をガードする\n[img:one_time]7ターンの間、ATK/DEF77%up[img:up]、属性気玉取得時の気力上昇量+1"
+                        "effect": "[img:one_time]1ターンの間、全ての攻撃をガードする\n[img:one_time]7ターンの間、ATK/DEF77%[img:up]、属性気玉取得時の気力上昇量+1"
                     },
                     "details": [
                         {
@@ -8343,7 +8403,7 @@ const CHARACTER_DATA = [
                         "maxLv": 20,
                         "type": "気弾",
                         "name": "かめはめ波&ギャリック砲",
-                        "effect": "1ターンATKとDEFが超大幅上昇し、相手に超極大ダメージを与える&敵の行動をそのターンのみ1回無効化する",
+                        "effect": "1ターンATKとDEFが超大幅上昇し、相手に超極大ダメージを与える\n&敵の行動をそのターンのみ1回無効化する",
                         "specs": {
                             "atk_up": "100%",
                             "def_up": "100%",
@@ -8447,7 +8507,7 @@ const CHARACTER_DATA = [
                     "name": "ダブル超サイヤ人ゴッド",
                     "intro": {
                         "condition": "自身の登場時、登場時演出が発動",
-                        "effect": "[img:one_time]1ターンの間、ダメージ軽減率77%up[img:up]、必殺技が追加発動\n[img:one_time]7ターンの間、気力+2、ATK/DEF100%up[img:up]、全ての攻撃をガード"
+                        "effect": "[img:one_time]1ターンの間、ダメージ軽減率77%[img:up]、必殺技が追加発動\n[img:one_time]7ターンの間、気力+2、ATK/DEF100%[img:up]、全ての攻撃をガード"
                     },
                     "details": [
                         {
@@ -8460,7 +8520,7 @@ const CHARACTER_DATA = [
                         {
                             "title": "取得気玉1個につき",
                             "effects": [
-                                "ATK/DEF10%up[img:up](最大77%)"
+                                "ATK/DEF10%[img:up](最大77%)"
                             ]
                         },
                         {
@@ -8532,7 +8592,7 @@ const CHARACTER_DATA = [
                         "maxLv": 25,
                         "type": "気弾",
                         "name": "かめはめ波&ギャリック砲(極限)",
-                        "effect": "4ターンATKとDEFが超大幅上昇し、相手に超極大ダメージを与える&敵の行動をそのターンのみ1回無効化する",
+                        "effect": "4ターンATKとDEFが超大幅上昇し、相手に超極大ダメージを与える\n&敵の行動をそのターンのみ1回無効化する",
                         "specs": {
                             "atk_up": "100%",
                             "def_up": "100%",
@@ -8566,13 +8626,13 @@ const CHARACTER_DATA = [
                         {
                             "title": "得気玉1個につき",
                             "effects": [
-                                "ATK/DEF10%up[img:up](最大100%)"
+                                "ATK/DEF10%[img:up](最大100%)"
                             ]
                         },
                         {
                             "title": "取得虹気玉1個につき",
                             "effects": [
-                                "会心率/回避率10%up[img:up]"
+                                "会心率/回避率10%[img:up]"
                             ]
                         },
                         {
@@ -8651,7 +8711,7 @@ const CHARACTER_DATA = [
             "親子の絆",
             "地球を守りし英雄"
         ],
-        "leaderSkill": "「融合/合体戦士」または「GT HERO」 カテゴリの気力+2、HPとATKとDEF130%UP、 「かめはめ波」カテゴリを含む場合は 更にHPとATKとDEF10%UP",
+        "leaderSkill": "「融合/合体戦士」または「GT HERO」 カテゴリの\n気力+2、HPとATKとDEF130%UP、\n「かめはめ波」カテゴリを含む場合は\n更にHPとATKとDEF10%UP",
         "leaderSkill_eza": "",
         "leaderSkill_seza": "",
         "awakening": [
@@ -8783,7 +8843,7 @@ const CHARACTER_DATA = [
             "親子の絆",
             "地球を守りし英雄"
         ],
-        "leaderSkill": "「融合/合体戦士」または「GT HERO」 カテゴリの気力+3、HPとATKとDEF150%UP、 「かめはめ波」カテゴリを含む場合は 更にHPとATKとDEF20%UP",
+        "leaderSkill": "「融合/合体戦士」または「GT HERO」 カテゴリの\n気力+3、HPとATKとDEF150%UP、\n「かめはめ波」カテゴリを含む場合は\n更にHPとATKとDEF20%UP",
         "leaderSkill_eza": "",
         "leaderSkill_seza": "",
         "awakening": [
@@ -8917,8 +8977,8 @@ const CHARACTER_DATA = [
             "親子の絆",
             "地球を守りし英雄"
         ],
-        "leaderSkill": "「融合/合体戦士」または「GT HERO」 カテゴリの気力+3、HPとATKとDEF170%UP、「かめはめ波」カテゴリを含む場合は更にHPとATKとDEF30%UP",
-        "leaderSkill_eza": "「融合/合体戦士」または「GT HERO」 カテゴリの気力+3、HPとATKとDEF170%UP、「かめはめ波」カテゴリを含む場合は更に気力+1、HPとATKとDEF30%UP",
+        "leaderSkill": "「融合/合体戦士」または「GT HERO」 カテゴリの\n気力+3、HPとATKとDEF170%UP、\n「かめはめ波」カテゴリを含む場合は\n更にHPとATKとDEF30%UP",
+        "leaderSkill_eza": "「融合/合体戦士」または「GT HERO」 カテゴリの\n気力+3、HPとATKとDEF170%UP、\n「かめはめ波」カテゴリを含む場合は\n更に気力+1、HPとATKとDEF30%UP",
         "leaderSkill_seza": "",
         "awakening": [
             {
@@ -9093,7 +9153,7 @@ const CHARACTER_DATA = [
                         "maxLv": 20,
                         "type": "気弾",
                         "name": "ビッグバンかめはめ波",
-                        "effect": "1ターンATKとDEFが超大幅上昇し、相手に超極大ダメージを与える&敵の行動をそのターンのみ1回無効化する",
+                        "effect": "1ターンATKとDEFが超大幅上昇し、相手に超極大ダメージを与える\n&敵の行動をそのターンのみ1回無効化する",
                         "specs": {
                             "atk_up": "100%",
                             "def_up": "100%",
@@ -9278,7 +9338,7 @@ const CHARACTER_DATA = [
                         "maxLv": 25,
                         "type": "気弾",
                         "name": "ビッグバンかめはめ波(極限)",
-                        "effect": "4ターンATKとDEFが超大幅上昇し、相手に超極大ダメージを与える&敵の行動をそのターンのみ1回無効化する",
+                        "effect": "4ターンATKとDEFが超大幅上昇し、相手に超極大ダメージを与える\n&敵の行動をそのターンのみ1回無効化する",
                         "specs": {
                             "atk_up": "100%",
                             "def_up": "100%",

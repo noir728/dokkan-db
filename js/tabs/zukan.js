@@ -485,7 +485,6 @@ function renderZukanList(targetGrid) {
 
 
 // --- Helper Functions for Auto Calculation ---
-
 function getSpecsHtml(specs) {
     if (!specs) return "";
     
@@ -582,6 +581,376 @@ function parseLinkStats(description, stats) {
     if (dodgeMatch) stats.dodge += parseInt(dodgeMatch[1], 10);
 }
 
+// テキストセグメントからステータス上昇値を抽出 (LS計算用)
+function parseSegmentStats(text) {
+    const stats = { ki: 0, hp: 0, atk: 0, def: 0 };
+    if (!text) return stats;
+
+    const kiMatch = text.match(/気力\+(\d+)/);
+    if (kiMatch) stats.ki = parseInt(kiMatch[1], 10);
+
+    // 全ステータス (HPとATKとDEF) - スペースや区切り文字に柔軟に対応
+    const allMatch = text.match(/HP(?:\s*(?:と|&|,|、)\s*)ATK(?:\s*(?:と|&|,|、)\s*)DEF\s*(\d+)%UP/);
+    if (allMatch) {
+        const val = parseInt(allMatch[1], 10);
+        stats.hp = Math.max(stats.hp, val);
+        stats.atk = Math.max(stats.atk, val);
+        stats.def = Math.max(stats.def, val);
+    } 
+    else {
+        // 個別指定 (例: HP130%UP, ATK170%UP)
+        const upRegex = /([^、,]+?)\s*(\d+)%UP/g;
+        let match;
+        while ((match = upRegex.exec(text)) !== null) {
+            const label = match[1];
+            const val = parseInt(match[2], 10);
+            if (label.includes("HP")) stats.hp = Math.max(stats.hp, val);
+            if (label.includes("ATK")) stats.atk = Math.max(stats.atk, val);
+            if (label.includes("DEF")) stats.def = Math.max(stats.def, val);
+        }
+    }
+    return stats;
+}
+
+// ★修正: リーダースキル詳細効果計算 (ロジック修正済み)
+function calcDetailedLeaderStats(leaderChar, subChar) {
+    let lsText = "";
+    if (leaderChar.leaderSkill) lsText = leaderChar.leaderSkill;
+    
+    if (!lsText || !subChar) return { ki: 0, hp: 0, atk: 0, def: 0 };
+
+    lsText = lsText.replace(/\n/g, '').replace(/更に/g, 'さらに');
+    const subCats = new Set(subChar.categories || []);
+    
+    // サブキャラの属性・クラス情報の整理
+    let subType = subChar.type || "";
+    let subClass = subChar.class || ""; 
+    if (!subClass && subType.includes("Super")) { subClass = "Super"; subType = subType.replace("Super", "").trim(); }
+    if (!subClass && subType.includes("Extreme")) { subClass = "Extreme"; subType = subType.replace("Extreme", "").trim(); }
+    const typeMapReverse = { '速': 'AGL', '技': 'TEQ', '知': 'INT', '力': 'STR', '体': 'PHY' };
+
+    // --- 判定関数 ---
+    const checkCategories = (text) => {
+        if (!text) return false;
+        const catMatches = text.match(/「([^」]+)」/g);
+        if (!catMatches) return false;
+        return catMatches.map(s => s.replace(/[「」]/g, '')).some(c => subCats.has(c));
+    };
+    
+    const checkType = (text) => {
+        if (!text) return false;
+        if (text.includes('全属性')) return true;
+        const jpTypes = ['速', '技', '知', '力', '体'];
+        for (const jT of jpTypes) {
+            if (text.includes(jT + '属性')) {
+                const enType = typeMapReverse[jT];
+                if (subType.includes(enType)) {
+                    let classMatch = true;
+                    if (text.includes('超' + jT) && subClass !== 'Super') classMatch = false;
+                    if (text.includes('極' + jT) && subClass !== 'Extreme') classMatch = false;
+                    if (classMatch) return true;
+                }
+            }
+        }
+        if (text.includes('超系') && subClass === 'Super') return true;
+        if (text.includes('極系') && subClass === 'Extreme') return true;
+        return false;
+    };
+
+    let totalStats = { ki: 0, hp: 0, atk: 0, def: 0 };
+
+    // --- 分割ロジック (Regexで「～カテゴリを含む場合は」を検出) ---
+    const extraConditionRegex = /((?:「[^」]+」(?:または|、)?)+)カテゴリを含む場合は/;
+    const extraMatch = lsText.match(extraConditionRegex);
+    
+    let baseText = lsText;
+    let extraCatsText = "";
+    let extraEffectText = "";
+
+    if (extraMatch) {
+        // "「C」" の部分は extraMatch[1] に入る
+        extraCatsText = extraMatch[1];
+        // 基本テキストは マッチ箇所の直前まで
+        baseText = lsText.substring(0, extraMatch.index);
+        // 効果テキストは マッチ箇所の直後から
+        extraEffectText = lsText.substring(extraMatch.index + extraMatch[0].length);
+    }
+
+    // 1. 基本部分 (文節ごとにチェックして最大値を採用)
+    const upRegex = /(\d+)%UP/g;
+    let match;
+    let lastIndex = 0;
+    
+    while ((match = upRegex.exec(baseText)) !== null) {
+        const endIndex = match.index + match[0].length;
+        const segment = baseText.substring(lastIndex, endIndex);
+        lastIndex = endIndex;
+
+        if (checkCategories(segment) || checkType(segment)) {
+            const segStats = parseSegmentStats(segment);
+            totalStats.ki = Math.max(totalStats.ki, segStats.ki);
+            totalStats.hp = Math.max(totalStats.hp, segStats.hp);
+            totalStats.atk = Math.max(totalStats.atk, segStats.atk);
+            totalStats.def = Math.max(totalStats.def, segStats.def);
+        }
+    }
+
+    // 2. 追加部分 (加算)
+    // 基本条件を満たし(ATK>0)、かつ追加カテゴリを持っている場合
+    if (totalStats.atk > 0 && extraCatsText && checkCategories(extraCatsText)) {
+         const extraStats = parseSegmentStats(extraEffectText);
+         totalStats.ki += extraStats.ki;
+         totalStats.hp += extraStats.hp;
+         totalStats.atk += extraStats.atk;
+         totalStats.def += extraStats.def;
+    }
+
+    return totalStats;
+}
+
+// 簡易LS計算 (バッジ用ラッパー)
+function calcLeaderBoost(leaderChar, subChar) {
+    let lsText = "";
+    if (leaderChar.leaderSkill) lsText = leaderChar.leaderSkill;
+    if (state.detailEzaMode === 'eza' || state.detailEzaMode === 'seza') {
+        if (leaderChar.leader_skill_eza) lsText = leaderChar.leader_skill_eza;
+        else if (leaderChar.leaderSkill_eza) lsText = leaderChar.leaderSkill_eza;
+        else if (leaderChar.leader_skill_seza && state.detailEzaMode === 'seza') lsText = leaderChar.leader_skill_seza;
+    }
+    
+    const tempLeader = { ...leaderChar, leaderSkill: lsText };
+    const stats = calcDetailedLeaderStats(tempLeader, subChar);
+    return stats.atk;
+}
+
+// リーダー候補リストの計算 (150%以上を抽出)
+function calcLeaderCandidates(subChar) {
+    const candidates = [];
+    
+    DB.forEach(char => {
+        // 覚醒前キャラを除外
+        if (char.awakening && char.awakening.length > 0) {
+            const stepsWithId = char.awakening.filter(step => step.id !== undefined && step.id !== null);
+            if (stepsWithId.length > 0) {
+                const lastStepId = stepsWithId[stepsWithId.length - 1].id;
+                if (char.id !== lastStepId) return; 
+            }
+        }
+
+        // 最強状態のLSで計算
+        let lsText = "";
+        let mode = "normal";
+        if (char.leader_skill_seza) { lsText = char.leader_skill_seza; mode = "seza"; }
+        else if (char.leader_skill_eza || char.leaderSkill_eza) { lsText = (char.leader_skill_eza || char.leaderSkill_eza); mode = "eza"; }
+        else lsText = char.leaderSkill;
+
+        if (!lsText) return;
+
+        const tempLeader = { ...char, leaderSkill: lsText };
+        const stats = calcDetailedLeaderStats(tempLeader, subChar);
+        
+        // フィルタ: ATK150%以上
+        if (stats.atk >= 150) {
+            candidates.push({
+                char: char,
+                stats: stats,
+                mode: mode
+            });
+        }
+    });
+
+    // ATK降順ソート
+    candidates.sort((a, b) => b.stats.atk - a.stats.atk);
+    
+    return candidates.slice(0, 30);
+}
+
+// ★修正: リーダースキル倍率の厳密計算 (分割ロジック修正版)
+function calcLeaderBoost(leaderChar, subChar) {
+    // 1. リーダーデータの特定
+    let lsText = "";
+    if (leaderChar.leaderSkill) lsText = leaderChar.leaderSkill;
+    
+    if (state.detailEzaMode === 'eza' || state.detailEzaMode === 'seza') {
+        if (leaderChar.leader_skill_eza) lsText = leaderChar.leader_skill_eza;
+        else if (leaderChar.leaderSkill_eza) lsText = leaderChar.leaderSkill_eza;
+        else if (leaderChar.leader_skill_seza && state.detailEzaMode === 'seza') lsText = leaderChar.leader_skill_seza;
+    }
+
+    if (!lsText || !subChar) return 0;
+
+    lsText = lsText.replace(/\n/g, '').replace(/更に/g, 'さらに');
+    const subCats = new Set(subChar.categories || []);
+    
+    // サブキャラ属性情報の整理
+    let subType = subChar.type || "";
+    let subClass = subChar.class || ""; 
+    if (!subClass && subType.includes("Super")) { subClass = "Super"; subType = subType.replace("Super", "").trim(); }
+    if (!subClass && subType.includes("Extreme")) { subClass = "Extreme"; subType = subType.replace("Extreme", "").trim(); }
+    const typeMapReverse = { '速': 'AGL', '技': 'TEQ', '知': 'INT', '力': 'STR', '体': 'PHY' };
+
+    // --- 判定用関数 ---
+    const checkCategories = (text) => {
+        const catMatches = text.match(/「([^」]+)」/g);
+        if (!catMatches) return false;
+        return catMatches.map(s => s.replace(/[「」]/g, '')).some(c => subCats.has(c));
+    };
+
+    const checkType = (text) => {
+        if (text.includes('全属性')) return true;
+        const jpTypes = ['速', '技', '知', '力', '体'];
+        for (const jT of jpTypes) {
+            if (text.includes(jT + '属性')) {
+                const enType = typeMapReverse[jT];
+                if (subType.includes(enType)) {
+                    let classMatch = true;
+                    if (text.includes('超' + jT) && subClass !== 'Super') classMatch = false;
+                    if (text.includes('極' + jT) && subClass !== 'Extreme') classMatch = false;
+                    if (classMatch) return true;
+                }
+            }
+        }
+        if (text.includes('超系') && subClass === 'Super') return true;
+        if (text.includes('極系') && subClass === 'Extreme') return true;
+        return false;
+    };
+
+    // --- 計算ロジック ---
+    let baseRate = 0;
+    let extraRate = 0;
+    let baseText = lsText;
+
+    // 2. 追加条件（200%リーダー等）の分離と計算
+    // 正規表現で「カテゴリを含む場合は...%UP」の部分を特定し、その直前のカテゴリ群も取得する
+    // Group 1: 追加条件のカテゴリリスト ("「A」" または "「A」または「B」")
+    // Group 2: 追加倍率
+    const extraConditionRegex = /((?:「[^」]+」(?:または)?)+)カテゴリを含む場合は(?:さらに)?.*?(\d+)%UP/;
+    const extraMatch = lsText.match(extraConditionRegex);
+
+    if (extraMatch) {
+        // 基本テキスト部分を切り出し（追加条件より前）
+        baseText = lsText.substring(0, extraMatch.index);
+        
+        // 追加条件のカテゴリ判定
+        const extraCatsText = extraMatch[1]; 
+        const extraRateVal = parseInt(extraMatch[2], 10);
+        
+        if (checkCategories(extraCatsText)) {
+            extraRate = extraRateVal;
+        }
+    }
+
+    // 3. 基本倍率の計算 (baseText内を走査)
+    // %UP で区切って、それぞれのブロックごとに条件判定
+    const upRegex = /(\d+)%UP/g;
+    let match;
+    let lastIndex = 0;
+    
+    while ((match = upRegex.exec(baseText)) !== null) {
+        const rateVal = parseInt(match[1], 10);
+        const endIndex = match.index + match[0].length;
+        
+        // 現在のUP値にかかる条件テキスト (前のUPの直後 ～ 今回のUP)
+        const segment = baseText.substring(lastIndex, endIndex);
+        lastIndex = endIndex;
+
+        // 条件に合致するか
+        const isCatMatch = checkCategories(segment);
+        const isTypeMatch = checkType(segment);
+
+        if (isCatMatch || isTypeMatch) {
+            if (rateVal > baseRate) baseRate = rateVal;
+        }
+    }
+    
+    // 基本条件を満たす場合のみ合算して返す
+    if (baseRate > 0) {
+        return baseRate + extraRate;
+    }
+    
+    return 0; 
+}
+
+// ★追加: パートナー表示の開閉トグル
+window.togglePartnerSection = function(id, btn) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const isHidden = el.style.display === 'none';
+    el.style.display = isHidden ? 'flex' : 'none'; // flexで横並びスクロール
+    
+    if(btn) {
+        const arrow = btn.querySelector('.toggle-arrow');
+        if(arrow) arrow.textContent = isHidden ? '▲' : '▼';
+    }
+};
+
+// リーダー詳細モーダル表示
+window.openLeaderDetailModal = function(leaderId) {
+    const leaderChar = DB.find(c => c.id === leaderId);
+    const subChar = DB.find(c => c.id === state.detailCharId);
+    if (!leaderChar || !subChar) return;
+
+    let lsText = leaderChar.leaderSkill;
+    let modeLabel = "";
+    if (leaderChar.leader_skill_seza) { lsText = leaderChar.leader_skill_seza; modeLabel = " (超極限)"; }
+    else if (leaderChar.leader_skill_eza || leaderChar.leaderSkill_eza) { lsText = (leaderChar.leader_skill_eza || leaderChar.leaderSkill_eza); modeLabel = " (極限)"; }
+
+    const tempLeader = { ...leaderChar, leaderSkill: lsText };
+    // ここでもカテゴリ情報を補完したオブジェクトを渡す
+    const currentSubForm = (subChar.forms && subChar.forms[state.detailFormIndex]) ? subChar.forms[state.detailFormIndex] : subChar;
+    const targetForCalc = { ...currentSubForm, categories: (currentSubForm.categories || subChar.categories), type: (currentSubForm.type || subChar.type), class: (currentSubForm.class || subChar.class) };
+    
+    const stats = calcDetailedLeaderStats(tempLeader, targetForCalc); 
+
+    const leaderIconHtml = getCharIconHtml(leaderChar);
+
+    const modalHtml = `
+        <div id="leader-detail-modal" class="modal-overlay open" style="z-index: 1200;">
+            <div class="filter-modal" style="height: auto; max-height: 80vh; padding-bottom: 30px;">
+                <div class="link-modal-content">
+                    <h2 style="font-size:14px; font-weight:bold; text-align:center; padding-bottom:10px; border-bottom:1px solid #333;">リーダー詳細</h2>
+                    
+                    <div style="display:flex; flex-direction:column; align-items:center; padding:15px 0;">
+                        <div class="dokkan-icon" onclick="closeLeaderModal(); openDetail(${leaderId});" style="width:80px; height:80px; margin-bottom:8px; cursor:pointer;">
+                            ${leaderIconHtml}
+                        </div>
+                        <div style="font-size:12px; font-weight:bold; color:#fff;">${leaderChar.name}</div>
+                        <div style="font-size:10px; color:#aaa;">${leaderChar.title || ''}${modeLabel}</div>
+                    </div>
+
+                    <div class="link-summary-box">
+                        <div class="summary-title">対象キャラへの効果</div>
+                        <div class="summary-stats">
+                            ${stats.ki > 0 ? `<div class="stat-badge stat-ki">気力+${stats.ki}</div>` : ''}
+                            <div class="stat-badge stat-def" style="border-color:#4cd964;">HP${stats.hp}%</div>
+                            <div class="stat-badge stat-atk">ATK${stats.atk}%</div>
+                            <div class="stat-badge stat-def">DEF${stats.def}%</div>
+                        </div>
+                    </div>
+
+                    <div style="background:#2a2a2e; padding:10px; border-radius:6px; margin: 0 15px 15px 15px; font-size:11px; color:#ddd; line-height:1.5;">
+                        <div style="color:#aaa; margin-bottom:4px; font-weight:bold;">リーダースキル:</div>
+                        ${lsText}
+                    </div>
+
+                    <div style="padding:10px; border-top:1px solid #333;">
+                        <button class="btn-reset" onclick="closeLeaderModal()" style="width:100%; padding:10px;">閉じる</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    const existing = document.getElementById('leader-detail-modal');
+    if (existing) existing.remove();
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+};
+
+window.closeLeaderModal = function() {
+    const modal = document.getElementById('leader-detail-modal');
+    if (modal) modal.remove();
+};
+
 // ★修正: 指定された形態(formType, formIndex)と相性比較する
 window.openLinkPartnerModal = function(partnerId, formType, formIndex) {
     // 1. 現在表示中のメインキャラ情報を取得
@@ -635,6 +1004,23 @@ window.openLinkPartnerModal = function(partnerId, formType, formIndex) {
         `;
     });
 
+    // LS倍率計算 (★追加部分)
+    const leaderData = (mainForm.leaderSkill || mainForm.leader_skill_eza) ? mainForm : mainChar;
+    const lsBoost = calcLeaderBoost(mainChar, partnerChar); 
+    let lsBadgeHtml = "";
+    
+    if (lsBoost > 0) {
+        let badgeColor = "#888";
+        if (lsBoost >= 200) badgeColor = "#ff4d4d"; 
+        else if (lsBoost >= 170) badgeColor = "#a7c51eff"; 
+        else if (lsBoost >= 150) badgeColor = "#5f5100ff"; 
+        
+        lsBadgeHtml = `<div style="margin-top:4px; font-size:10px; font-weight:bold; color:#fff; background:${badgeColor}; padding:1px 6px; border-radius:4px; box-shadow:0 1px 3px rgba(0,0,0,0.5);">LS ${lsBoost}%</div>`;
+    } else {
+        lsBadgeHtml = `<div style="margin-top:4px; font-size:10px; color:#666; background:#222; padding:1px 6px; border-radius:4px; border:1px solid #444;">LS 対象外</div>`;
+    }
+
+
     // 4. モーダルHTMLの生成
     const mainIconHtml = getCharIconHtml(mainChar, mainForm);
     const partnerIconHtml = getCharIconHtml(partnerChar, partnerForm);
@@ -653,6 +1039,7 @@ window.openLinkPartnerModal = function(partnerId, formType, formIndex) {
                         <div class="compare-arrow">⇔</div>
                         <div class="compare-char" onclick="closeLinkModal(); openDetail(${partnerChar.id});" style="cursor:pointer;">
                             <div class="dokkan-icon" style="width:60px; height:60px; margin-bottom:4px;">${partnerIconHtml}</div>
+                            ${lsBadgeHtml}
                             <span style="font-size:10px; color:#ffd700; text-decoration:underline; text-align:center;">詳細へ</span>
                         </div>
                     </div>
@@ -660,14 +1047,14 @@ window.openLinkPartnerModal = function(partnerId, formType, formIndex) {
                     <div class="link-summary-box">
                         <div class="summary-title">発動リンク合計効果 (Lv10)</div>
                         <div class="summary-stats">
-                            ${totalStats.ki > 0 ? `<div class="stat-badge stat-ki">気力 +${totalStats.ki}</div>` : ''}
-                            ${totalStats.atk > 0 ? `<div class="stat-badge stat-atk">ATK +${totalStats.atk}%</div>` : ''}
-                            ${totalStats.def > 0 ? `<div class="stat-badge stat-def">DEF +${totalStats.def}%</div>` : ''}
-                            ${totalStats.hp_rec > 0 ? `<div class="stat-badge stat-def">HP ${totalStats.hp_rec}%回復</div>` : ''}
-                            ${totalStats.crit > 0 ? `<div class="stat-badge stat-atk">会心 +${totalStats.crit}%</div>` : ''}
-                            ${totalStats.reduce > 0 ? `<div class="stat-badge stat-def">軽減 +${totalStats.reduce}%</div>` : ''}
-                            ${totalStats.dodge > 0 ? `<div class="stat-badge stat-def">回避 +${totalStats.dodge}%</div>` : ''}
-                            ${totalStats.def_down > 0 ? `<div class="stat-badge stat-down">敵DEF -${totalStats.def_down}%</div>` : ''}
+                            ${totalStats.ki > 0 ? `<div class="stat-badge stat-ki">気力+${totalStats.ki}</div>` : ''}
+                            ${totalStats.atk > 0 ? `<div class="stat-badge stat-atk">ATK${totalStats.atk}%UP</div>` : ''}
+                            ${totalStats.def > 0 ? `<div class="stat-badge stat-def">DEF${totalStats.def}%UP</div>` : ''}
+                            ${totalStats.hp_rec > 0 ? `<div class="stat-badge stat-def">HP${totalStats.hp_rec}%回復</div>` : ''}
+                            ${totalStats.crit > 0 ? `<div class="stat-badge stat-atk">会心率${totalStats.crit}%UP</div>` : ''}
+                            ${totalStats.reduce > 0 ? `<div class="stat-badge stat-def">軽減率${totalStats.reduce}%UP</div>` : ''}
+                            ${totalStats.dodge > 0 ? `<div class="stat-badge stat-def">回避率${totalStats.dodge}%UP</div>` : ''}
+                            ${totalStats.def_down > 0 ? `<div class="stat-badge stat-down">敵DEF${totalStats.def_down}%DOWN</div>` : ''}
                             
                             ${(totalStats.ki===0 && totalStats.atk===0 && totalStats.def===0 && totalStats.def_down===0 && totalStats.hp_rec===0 && totalStats.crit===0 && totalStats.reduce===0 && totalStats.dodge===0) ? '<span style="font-size:11px;color:#666;">ステータス変動なし</span>' : ''}
                         </div>
@@ -1125,6 +1512,29 @@ function renderCharacterDetail(id) {
         body.innerHTML += `<div class="section-title">リーダースキル</div><div class="skill-card"><div class="passive-text">${formatText(displayLeaderSkill)}</div></div>`;
     }
 
+    // ★修正: パートナー表示をここに移動 & 折りたたみ式にする
+    const partners = calcPartners(char, currentData);
+    if (partners.length > 0) {
+        let partnersHtml = '';
+        partners.forEach(p => {
+            const iconHtml = getCharIconHtml(p.char, p.targetForm); 
+            let labelHtml = `リンク: ${p.match}`;
+            let badgeClass = "link-match-badge";
+            if (p.isFull) { labelHtml = "フルリンク"; badgeClass += " full-link"; }
+            partnersHtml += `<div class="scroll-item-wrapper" onclick="openLinkPartnerModal(${p.char.id}, '${p.formType}', ${p.formIndex})"><div class="scroll-icon-box">${iconHtml}</div><div class="scroll-item-info"><span class="${badgeClass}">${labelHtml}</span></div></div>`;
+        });
+        
+        // 折りたたみUIの構築
+        const toggleId = `partner-toggle-${id}`;
+        body.innerHTML += `
+            <div class="section-title" onclick="togglePartnerSection('${toggleId}', this)" style="cursor:pointer; display:flex; align-items:center; justify-content:space-between;">
+                <span>相性の良いキャラ (タップで開く)</span>
+                <span class="toggle-arrow" style="font-size:12px; color:#888;">▼</span>
+            </div>
+            <div id="${toggleId}" class="partner-scroll" style="display:none;">${partnersHtml}</div>
+        `;
+    }
+
     // Passive (修正: 最大ステータス4種 + アイコン表示 + 効果アイコン列)
     if (currentData.passive) {
         let content = '';
@@ -1321,15 +1731,49 @@ function renderCharacterDetail(id) {
         });
     }
 
-    // Categories
+    // ★追加: カテゴリの下にリーダー候補表示
     if (char.categories) {
-        // ★修正: HTML文字列生成の仕方を修正。innerHTML+=の繰り返しをやめる
         let catHtml = `<div class="section-title">カテゴリ</div><div style="display:flex; flex-wrap:wrap; gap:6px;">`;
-        char.categories.forEach(cat => { 
-            catHtml += `<span class="clickable-tag" onclick="window.applyFilter('category', '${cat}')" style="background:#333; padding:6px 12px; border-radius:12px; font-size:12px; border:1px solid #555;">${cat}</span>`; 
-        });
+        char.categories.forEach(cat => { catHtml += `<span class="clickable-tag" onclick="window.applyFilter('category', '${cat}')" style="background:#333; padding:6px 12px; border-radius:12px; font-size:12px; border:1px solid #555;">${cat}</span>`; });
         catHtml += `</div>`;
         body.innerHTML += catHtml;
+
+        // リーダー候補セクションの挿入
+        // ★修正ポイント: 変身後の形態(currentData)であっても、カテゴリ計算ができるように本体のcategories情報を補完する
+        const targetForLeaderCalc = { 
+            ...currentData, 
+            categories: (currentData.categories || char.categories),
+            type: (currentData.type || char.type),
+            class: (currentData.class || char.class)
+        };
+        const leaderCandidates = calcLeaderCandidates(targetForLeaderCalc);
+        
+        if (leaderCandidates.length > 0) {
+            let leaderHtml = '';
+            leaderCandidates.forEach(l => {
+                const iconHtml = getCharIconHtml(l.char); // リーダーは基本アイコンでOK
+                let badgeClass = "link-match-badge";
+                // 200%以上は赤色などの強調クラスをつける（style.css依存だがここではクラスだけ）
+                if(l.stats.atk >= 200) badgeClass += " full-link"; 
+                
+                leaderHtml += `
+                    <div class="scroll-item-wrapper" onclick="openLeaderDetailModal(${l.char.id})">
+                        <div class="scroll-icon-box">${iconHtml}</div>
+                        <div class="scroll-item-info">
+                            <span class="${badgeClass}">ATK ${l.stats.atk}%</span>
+                        </div>
+                    </div>`;
+            });
+
+            const toggleId = `leader-toggle-${id}`;
+            body.innerHTML += `
+                <div class="section-title" onclick="togglePartnerSection('${toggleId}', this)" style="cursor:pointer; display:flex; align-items:center; justify-content:space-between; margin-top:20px;">
+                    <span>リーダー候補 (タップで開く)</span>
+                    <span class="toggle-arrow" style="font-size:12px; color:#888;">▼</span>
+                </div>
+                <div id="${toggleId}" class="partner-scroll" style="display:none; padding-top:10px;">${leaderHtml}</div>
+            `;
+        }
     }
 
     //Links
@@ -1342,23 +1786,6 @@ function renderCharacterDetail(id) {
         linkHtml += `</table></div>`;
         body.innerHTML += linkHtml;
     }
-    
-    // ★修正: パートナー表示 (bestFormではなく、targetFormを渡してアイコンを変身後にする)
-    const partners = calcPartners(char, currentData);
-    if (partners.length > 0) {
-        let partnersHtml = '';
-        partners.forEach(p => {
-            // ★変更: 第2引数にターゲット形態を渡す
-            const iconHtml = getCharIconHtml(p.char, p.targetForm); 
-            let labelHtml = `リンク: ${p.match}`;
-            let badgeClass = "link-match-badge";
-            if (p.isFull) { labelHtml = "フルリンク"; badgeClass += " full-link"; }
-            // モーダルオープン時に形態識別子(formType, formIndex)を渡す
-            partnersHtml += `<div class="scroll-item-wrapper" onclick="openLinkPartnerModal(${p.char.id}, '${p.formType}', ${p.formIndex})"><div class="scroll-icon-box">${iconHtml}</div><div class="scroll-item-info"><span class="${badgeClass}">${labelHtml}</span></div></div>`;
-        });
-        body.innerHTML += `<div class="section-title">相性の良いキャラ</div><div class="partner-scroll">${partnersHtml}</div>`;
-    }
-
 
     // ★修正: 技上げ素材 (確率表記削除 & SSRのみ & ガシャ産ラベル削除)
     const farmResult = calcFarmCards(char);
